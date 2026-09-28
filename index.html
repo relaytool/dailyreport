@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1822">
+  <title>Asset Compliance — End of Shift Report</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://accounts.google.com/gsi/client" async defer onload="window.dispatchEvent(new Event('fm-google-loaded'))"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-copy">
+      <div class="eyebrow">ASSET COMPLIANCE</div>
+      <h1>End-of-Shift Report</h1>
+      <p>Live from the Assets Inventory Ledger · built for quick shift handover.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn secondary" id="refreshBtn">↻ Refresh</button>
+      <button type="button" class="btn primary" id="generateBtn">Generate report + Slack summary</button>
+    </div>
+  </header>
+
+  <section class="connection-card" id="connectionCard">
+    <div class="connection-copy">
+      <h2>Get started</h2>
+      <div class="connection-actions-inline">
+        <button type="button" class="btn primary" id="googleConnectBtn">Sign in with Google</button>
+        <label class="btn secondary upload-ledger-btn">Upload ledger
+          <input id="xlsxFile" type="file" accept=".xlsx,.xls" hidden>
+        </label>
+      </div>
+      <p id="authStatus" class="auth-status"></p>
+      <div class="connection-user hidden" id="connectedUserRow"><span>Account</span><strong id="connectedUser">Not connected</strong></div>
+    </div>
+    <div class="connection-actions">
+      <button type="button" class="btn ghost hidden" id="signOutBtn">Sign out</button>
+    </div>
+  </section>
+
+  <main id="appShell" class="hidden">
+    <div class="live-bar">
+      <div><span class="live-dot"></span><strong>Live Sheets data</strong><span id="syncStatus">Waiting to sync…</span></div>
+      <div class="live-actions"><span id="annotationStatus">All changes saved</span><button type="button" class="text-button" id="saveAnnotationsBtn">Save report edits</button></div>
+    </div>
+
+    <main class="form-shell">
+      <section class="card hero-card">
+        <div class="section-head">
+          <div><span class="section-number">01</span><div><span class="section-kicker">Report setup</span><h2>Shift details</h2></div></div>
+        </div>
+        <div class="grid three">
+          <label>Report date<input id="reportDate" type="date"></label>
+          <label>Shift<select id="shiftSelect"><option value="day">Day shift · 07:00–19:00</option><option value="night">Night shift · 19:00–07:00</option></select></label>
+          <label>Prepared by<input id="preparedBy" type="text" placeholder="Name"></label>
+        </div>
+        <div id="shiftWindow" class="shift-window"><strong>Day shift</strong><span>Loading…</span><small>Report date is the shift end date.</small></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div><span class="section-number">02</span><div><span class="section-kicker">Live inventory</span><h2>Shift inventory snapshot</h2></div></div>
+          <span class="calculated-note">Calculated from live Sheets</span>
+        </div>
+        <div id="inventorySummaryPreview" class="inventory-summary-preview"></div>
+        <div id="inventoryForm" class="inventory-form-calculation-cache" aria-hidden="true"></div>
+        <label class="status-field">Overall status<select id="overallStatus"><option>On Track</option><option>Attention Required</option><option>Critical</option></select></label>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">03</span><div><span class="section-kicker">Live movements</span><h2>Client movement</h2></div></div>
+          <span class="count-pill" id="transactionCount">0</span>
+        </div>
+        <p class="form-hint">All Sent and Received transactions in the selected shift, with today’s and all-time client balances. Notable selections are saved locally on this device.</p>
+        <div id="clientMovementPreview" class="client-movement-preview"></div>
+        <div class="grid two notes-grid">
+          <label>Movement notes<textarea id="receivedNotes" rows="2" placeholder="Optional notes"></textarea></label>
+          <label>General notes<textarea id="sentNotes" rows="2" placeholder="Optional notes"></textarea></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">04</span><div><span class="section-kicker">Live schedule</span><h2>Scheduled movements</h2></div></div>
+          <span class="count-pill" id="routineCount">0</span>
+        </div>
+        <p class="form-hint">Pulled from <strong>Routine Outbounds</strong>. Mark each movement completed, enter what actually moved, and add a note.</p>
+        <div id="routineBody" class="routine-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">05</span><div><span class="section-kicker">Shift review</span><h2>Notable transactions</h2></div></div>
+          <span class="count-pill subtle">Select below</span>
+        </div>
+        <p class="form-hint">Every transaction from the selected shift is shown here. Mark the ones worth mentioning and add context.</p>
+        <div id="notableBody" class="transaction-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">06</span><div><span class="section-kicker">Exceptions</span><h2>Discarded assets</h2></div></div>
+        </div>
+        <p class="form-hint">Discarded movements are pulled from the live transaction sheet. Add a reason for the handover.</p>
+        <div id="discardedAssetsPreview" class="discarded-today-preview"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">07</span><div><span class="section-kicker">Manual input</span><h2>Outstanding issues / risks</h2></div></div>
+          <button type="button" class="small-btn" id="addIssueBtn">+ Add issue</button>
+        </div>
+        <div id="issueRows" class="entry-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><span class="section-number">08</span><div><span class="section-kicker">Handover</span><h2>Plan for tomorrow</h2></div></div></div>
+        <textarea id="tomorrowPlan" rows="5" placeholder="Enter tomorrow's priorities, expected receipts, dispatches or actions…"></textarea>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><span class="section-number">09</span><div><span class="section-kicker">Sign-off</span><h2>End-of-shift sign-off</h2></div></div></div>
+        <div class="grid two">
+          <label>Date / time<input id="signoffDate" type="datetime-local"></label>
+          <label>Overall EOD status<select id="eodStatus"><option>Normal</option><option>Attention Required</option><option>Escalation Required</option></select></label>
+        </div>
+      </section>
+
+      <section class="output-grid hidden" id="outputCard">
+        <div class="card output-card">
+          <div class="section-head"><div><span class="section-kicker">PNG report</span><h2>Generated daily report</h2></div><button type="button" class="btn secondary" id="downloadPngBtn">Download PNG again</button></div>
+          <div id="reportPreviewWrap" class="report-preview-wrap hidden"><img id="reportPreview" alt="Generated end-of-shift report preview"></div>
+        </div>
+        <div class="card output-card">
+          <div class="section-head"><div><span class="section-kicker">Copy-ready</span><h2>Slack summary</h2></div><span id="summaryMeta" class="summary-meta"></span></div>
+          <textarea id="slackSummary" class="slack-summary" spellcheck="false"></textarea>
+          <div class="output-actions"><button type="button" class="btn primary" id="copySummaryBtn">Copy summary</button><button type="button" class="btn secondary" id="downloadSummaryBtn">Download TXT</button></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="reportArea" class="report-area">
+    <div id="report" class="report">
+      <div class="report-header">
+        <div><div class="report-kicker">ASSET COMPLIANCE • END OF SHIFT</div><h1>End-of-Shift Asset Management &amp; Compliance Report</h1></div>
+        <div class="report-meta"><div><span>Date</span><strong id="rDate">—</strong></div><div><span>Shift</span><strong id="rShift">—</strong></div><div><span>Shift window</span><strong id="rShiftWindow">—</strong></div><div><span>Prepared by</span><strong id="rPrepared">—</strong></div></div>
+      </div>
+      <section class="report-section summary-section"><div class="report-section-title-row"><div><h2>Shift Inventory Snapshot</h2><p class="section-subtitle">Movement and stock position by asset type</p></div><div class="status-pill" id="rStatus">On Track</div></div><div id="rInventorySummaryCards" class="inventory-summary-report-grid"></div></section>
+      <section class="report-section movement-section"><div class="report-section-title-row"><div><h2>Client Movement</h2><p class="section-subtitle">Sent, received, today's net and all-time assets held with each client</p></div></div><div id="rClientMovement" class="client-report-grid"></div><div class="notes-pair"><div class="note-box"><span>Movement notes</span><p id="rReceivedNotes">—</p></div><div class="note-box"><span>General notes</span><p id="rSentNotes">—</p></div></div></section>
+      <section class="report-section"><div class="report-section-title-row"><div><h2>Scheduled Movements</h2><p class="section-subtitle">Routine expectations versus actual completion</p></div></div><table><thead><tr><th>Client</th><th>Asset</th><th>Planned</th><th>Actual</th><th>Status</th><th>Notes</th></tr></thead><tbody id="rRoutineRows"></tbody></table></section>
+      <section class="report-section discarded-report-section"><div class="report-section-title-row"><div><h2>Discarded Assets</h2><p class="section-subtitle">Asset type, quantity discarded and reason</p></div></div><div id="rDiscardedAssetsToday" class="discarded-report-list"></div></section>
+      <section class="report-section"><h2>Outstanding Issues / Risks</h2><table><thead><tr><th>Priority</th><th>Issue</th><th>Asset / Client</th><th>Impact</th><th>Action</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="rIssueRows"></tbody></table></section>
+      <section class="report-section plan"><h2>Plan for Tomorrow</h2><p id="rTomorrow">—</p></section>
+      <footer class="report-footer"><div><span>End-of-Shift Sign-Off</span><strong id="rSignoff">—</strong></div><div><span>Overall EOD Status</span><strong id="rEodStatus">Normal</strong></div></footer>
+    </div>
+  </div>
+
+  <div id="transactionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <div class="modal-head"><div><span class="section-kicker">Transaction details</span><h2 id="modalTitle">Movement</h2></div><button type="button" class="modal-close" data-close-modal aria-label="Close">×</button></div>
+      <div class="modal-grid"><div><span>Client</span><strong id="modalClient">—</strong></div><div><span>Movement</span><strong id="modalMovement">—</strong></div><div><span>Asset</span><strong id="modalAsset">—</strong></div><div><span>Quantity</span><strong id="modalQuantity">—</strong></div><div><span>Timestamp</span><strong id="modalTimestamp">—</strong></div><div><span>User</span><strong id="modalUser">—</strong></div></div>
+      <div class="modal-comment"><span>Comment</span><p id="modalComment">—</p></div>
+      <div id="modalPhotoWrap" class="modal-photo-wrap hidden"><img id="modalPhoto" alt="Transaction photo"><a id="modalPhotoLink" target="_blank" rel="noopener">Open full size in Drive</a></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="config.js?v=20260927-daily-v3"></script>
+  <script src="routine-alert-utils.js?v=20260927-daily-v3"></script>
+  <script src="app.js?v=20260927-daily-v3"></script>
+  <script>
+    document.getElementById('addIssueBtn')?.addEventListener('click', () => window.addIssueRow());
+  </script>
+</body>
+</html>
