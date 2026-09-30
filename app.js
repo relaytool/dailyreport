@@ -97,6 +97,9 @@
         const key = event.target.dataset.key;
         saveDiscardReason(key, event.target.value);
       }
+      // The Slack summary is intentionally editable. Do not regenerate it
+      // while the user is typing, or their manual edits would be lost.
+      if (event.target.id === "slackSummary") return;
       if (event.target.closest(".form-shell") && !event.target.closest("#routineBody") && !event.target.closest("#notableBody")) {
         renderSlackSummary();
       }
@@ -340,6 +343,7 @@
   function shiftInfo() {
     const reportDate = $("reportDate").value;
     const shift = $("shiftSelect").value;
+
     if (shift === "night") {
       const startDate = previousDateKey(reportDate);
       return {
@@ -352,6 +356,20 @@
         windowText: `${formatDate(startDate)}, 19:00–${formatDate(reportDate)}, 07:00`
       };
     }
+
+    if (shift === "24hr") {
+      const endDate = nextDateKey(reportDate);
+      return {
+        key: "24hr",
+        label: "24-hour period",
+        startDate: reportDate,
+        endDate,
+        startTime: "07:00",
+        endTime: "07:00",
+        windowText: `${formatDate(reportDate)}, 07:00–${formatDate(endDate)}, 07:00`
+      };
+    }
+
     return {
       key: "day",
       label: "Day shift",
@@ -365,7 +383,8 @@
 
   function updateShiftWindow() {
     const info = shiftInfo();
-    $("shiftWindow").innerHTML = `<strong>${escapeHtml(info.label)}</strong><span>${escapeHtml(info.windowText)}</span><small>Report date is the shift end date.</small>`;
+    const dateNote = info.key === "24hr" ? "Report date is the shift start date." : "Report date is the shift end date.";
+    $("shiftWindow").innerHTML = `<strong>${escapeHtml(info.label)}</strong><span>${escapeHtml(info.windowText)}</span><small>${escapeHtml(dateNote)}</small>`;
     $("rShift").textContent = info.label;
     $("rShiftWindow").textContent = info.windowText;
   }
@@ -378,6 +397,10 @@
     const info = shiftInfo();
     const mins = p.hour * 60 + p.minute;
     if (info.key === "day") return p.date === info.endDate && mins >= 420 && mins < 1140;
+    if (info.key === "24hr") {
+      return (p.date === info.startDate && mins >= 420) ||
+             (p.date === info.endDate && mins < 420);
+    }
     return (p.date === info.startDate && mins >= 1140) || (p.date === info.endDate && mins < 420);
   }
 
@@ -913,7 +936,8 @@
 
   function reportFileName() {
     const date = $("reportDate").value || "report";
-    const shift = $("shiftSelect").value === "night" ? "Night" : "Day";
+    const shiftValue = $("shiftSelect").value;
+    const shift = shiftValue === "night" ? "Night" : shiftValue === "24hr" ? "24hr" : "Day";
     return `EOD_Asset_Report_${date.replaceAll("-", "")}_${shift}.png`;
   }
 
@@ -1406,6 +1430,12 @@
   function previousDateKey(date) {
     const d = new Date(`${date}T12:00:00Z`);
     d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function nextDateKey(date) {
+    const d = new Date(`${date}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
     return d.toISOString().slice(0, 10);
   }
 

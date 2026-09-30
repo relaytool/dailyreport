@@ -53,7 +53,7 @@
         </div>
         <div class="grid three">
           <label>Report date<input id="reportDate" type="date"></label>
-          <label>Shift<select id="shiftSelect"><option value="day">Day shift · 07:00–19:00</option><option value="night">Night shift · 19:00–07:00</option></select></label>
+          <label>Shift<select id="shiftSelect"><option value="day">Day shift · 07:00–19:00</option><option value="night">Night shift · 19:00–07:00</option><option value="24hr">24-hour period · 07:00–07:00 next day</option></select></label>
           <label>Prepared by<input id="preparedBy" type="text" placeholder="Name"></label>
         </div>
         <div id="shiftWindow" class="shift-window"><strong>Day shift</strong><span>Loading…</span><small>Report date is the shift end date.</small></div>
@@ -135,7 +135,7 @@
           <div id="reportPreviewWrap" class="report-preview-wrap hidden"><img id="reportPreview" alt="Generated end-of-shift report preview"></div>
         </div>
         <div class="card output-card">
-          <div class="section-head"><div><span class="section-kicker">Copy-ready</span><h2>Slack summary</h2></div><span id="summaryMeta" class="summary-meta"></span></div>
+          <div class="section-head"><div><span class="section-kicker">Copy-ready</span><h2>Slack summary</h2><p class="summary-edit-hint">Edit the message below before copying. Your changes will stay until the report is regenerated.</p></div><span id="summaryMeta" class="summary-meta"></span></div>
           <textarea id="slackSummary" class="slack-summary" spellcheck="false"></textarea>
           <div class="output-actions"><button type="button" class="btn primary" id="copySummaryBtn">Copy summary</button><button type="button" class="btn secondary" id="downloadSummaryBtn">Download TXT</button></div>
         </div>
