@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Asset Transactions • Current Shift</title>
+  <link rel="stylesheet" href="transactions.css?v=20260930-v1">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">ASSET INVENTORY LEDGER</div>
+      <h1>Current Shift Transactions</h1>
+      <p id="shiftSubtitle">Loading current London shift…</p>
+    </div>
+    <div class="top-actions">
+      <button id="refreshBtn" class="btn secondary" type="button">↻ Refresh</button>
+      <button id="connectBtn" class="btn primary" type="button">Connect Google Sheets</button>
+      <button id="signOutBtn" class="btn ghost hidden" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section id="statusBar" class="status-card">
+      <div>
+        <span class="status-dot"></span>
+        <strong id="syncStatus">Waiting for Google Sheets…</strong>
+      </div>
+      <span id="transactionCount" class="count-pill">0 transactions</span>
+    </section>
+
+    <section class="toolbar card">
+      <div class="toolbar-group">
+        <label for="viewMode">Period</label>
+        <select id="viewMode">
+          <option value="current">Current shift</option>
+          <option value="day">Day shift • 07:00–19:00</option>
+          <option value="night">Night shift • 19:00–07:00</option>
+          <option value="24hr">24 hours • 07:00–07:00</option>
+        </select>
+      </div>
+      <div class="toolbar-info">
+        <span id="periodLabel">—</span>
+        <small id="periodHelp">Same client transactions are grouped when they fall within a 5-minute window.</small>
+      </div>
+      <div class="toolbar-group search-group">
+        <label for="searchInput">Search</label>
+        <input id="searchInput" type="search" placeholder="Client, asset, comment…" autocomplete="off">
+      </div>
+    </section>
+
+    <section class="layout-grid">
+      <div>
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">LIVE MOVEMENTS</span>
+            <h2>Transaction groups</h2>
+          </div>
+          <span id="groupCount" class="muted">0 groups</span>
+        </div>
+        <div id="transactionGroups" class="transaction-groups">
+          <div class="empty-panel">Connect Google Sheets to load the current shift.</div>
+        </div>
+      </div>
+
+      <aside class="composer-panel card">
+        <div class="composer-head">
+          <div>
+            <span class="eyebrow">COPY READY</span>
+            <h2>Message summary</h2>
+          </div>
+          <span id="selectedMeta" class="muted">Select a transaction group</span>
+        </div>
+
+        <div class="composer-note">
+          Edit anything below before copying. The photo is included in the rich copy when the browser supports HTML clipboard content.
+        </div>
+
+        <div id="messageEditor" class="message-editor" contenteditable="true" spellcheck="false" aria-label="Editable transaction message">
+          <p class="editor-placeholder">Select a transaction group to build the message.</p>
+        </div>
+
+        <div id="photoStatus" class="photo-status"></div>
+
+        <div class="composer-actions">
+          <button id="copyMessageBtn" class="btn primary" type="button" disabled>📋 Copy for WhatsApp / Slack</button>
+          <button id="resetMessageBtn" class="btn secondary" type="button" disabled>↺ Reset message</button>
+        </div>
+        <div id="copyStatus" class="copy-status"></div>
+      </aside>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="config.js?v=20260927-daily-v3"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="transactions.js?v=20260930-v1"></script>
+</body>
+</html>
