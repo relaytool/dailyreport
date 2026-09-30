@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d1822">
-  <title>Asset Compliance — End of Shift Report</title>
+  <title id="pageTitle">Asset Compliance — End of Shift Report</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://accounts.google.com/gsi/client" async defer onload="window.dispatchEvent(new Event('fm-google-loaded'))"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -14,8 +14,8 @@
   <header class="topbar">
     <div class="brand-copy">
       <div class="eyebrow">ASSET COMPLIANCE</div>
-      <h1>End-of-Shift Report</h1>
-      <p>Live from the Assets Inventory Ledger · built for quick shift handover.</p>
+      <h1 id="formPageTitle">End-of-Shift Report</h1>
+      <p id="formPageSubtitle">Live from the Assets Inventory Ledger · built for quick shift handover.</p>
     </div>
     <div class="header-actions">
       <button type="button" class="btn secondary" id="refreshBtn">↻ Refresh</button>
@@ -49,7 +49,7 @@
     <main class="form-shell">
       <section class="card hero-card">
         <div class="section-head">
-          <div><span class="section-number">01</span><div><span class="section-kicker">Report setup</span><h2>Shift details</h2></div></div>
+          <div><span class="section-number">01</span><div><span class="section-kicker">Report setup</span><h2 id="reportSetupTitle">Shift details</h2></div></div>
         </div>
         <div class="grid three">
           <label>Report date<input id="reportDate" type="date"></label>
@@ -61,7 +61,7 @@
 
       <section class="card">
         <div class="section-head">
-          <div><span class="section-number">02</span><div><span class="section-kicker">Live inventory</span><h2>Shift inventory snapshot</h2></div></div>
+          <div><span class="section-number">02</span><div><span class="section-kicker">Live inventory</span><h2 id="inventorySectionTitle">Shift inventory snapshot</h2></div></div>
           <span class="calculated-note">Calculated from live Sheets</span>
         </div>
         <div id="inventorySummaryPreview" class="inventory-summary-preview"></div>
@@ -74,7 +74,7 @@
           <div><span class="section-number">03</span><div><span class="section-kicker">Live movements</span><h2>Client movement</h2></div></div>
           <span class="count-pill" id="transactionCount">0</span>
         </div>
-        <p class="form-hint">All Sent and Received transactions in the selected shift, with today’s and all-time client balances. Notable selections are saved locally on this device.</p>
+        <p class="form-hint">All Sent and Received transactions in the selected period, with today’s and all-time client balances. For the 24-hour option this covers both the Day and Night shifts. Notable selections are saved locally on this device.</p>
         <div id="clientMovementPreview" class="client-movement-preview"></div>
         <div class="grid two notes-grid">
           <label>Movement notes<textarea id="receivedNotes" rows="2" placeholder="Optional notes"></textarea></label>
@@ -93,10 +93,10 @@
 
       <section class="card">
         <div class="section-head row-head">
-          <div><span class="section-number">05</span><div><span class="section-kicker">Shift review</span><h2>Notable transactions</h2></div></div>
+          <div><span class="section-number">05</span><div><span class="section-kicker" id="reviewSectionKicker">Shift review</span><h2>Notable transactions</h2></div></div>
           <span class="count-pill subtle">Select below</span>
         </div>
-        <p class="form-hint">Every transaction from the selected shift is shown here. Mark the ones worth mentioning and add context.</p>
+        <p class="form-hint">Every transaction from the selected reporting period is shown here. For the 24-hour option this includes both the Day and Night shifts.</p>
         <div id="notableBody" class="transaction-list"></div>
       </section>
 
@@ -122,7 +122,7 @@
       </section>
 
       <section class="card">
-        <div class="section-head"><div><span class="section-number">09</span><div><span class="section-kicker">Sign-off</span><h2>End-of-shift sign-off</h2></div></div></div>
+        <div class="section-head"><div><span class="section-number">09</span><div><span class="section-kicker">Sign-off</span><h2 id="signoffSectionTitle">End-of-shift sign-off</h2></div></div></div>
         <div class="grid two">
           <label>Date / time<input id="signoffDate" type="datetime-local"></label>
           <label>Overall EOD status<select id="eodStatus"><option>Normal</option><option>Attention Required</option><option>Escalation Required</option></select></label>
@@ -146,16 +146,16 @@
   <div id="reportArea" class="report-area">
     <div id="report" class="report">
       <div class="report-header">
-        <div><div class="report-kicker">ASSET COMPLIANCE • END OF SHIFT</div><h1>End-of-Shift Asset Management &amp; Compliance Report</h1></div>
-        <div class="report-meta"><div><span>Date</span><strong id="rDate">—</strong></div><div><span>Shift</span><strong id="rShift">—</strong></div><div><span>Shift window</span><strong id="rShiftWindow">—</strong></div><div><span>Prepared by</span><strong id="rPrepared">—</strong></div></div>
+        <div><div class="report-kicker" id="reportKicker">ASSET COMPLIANCE • END OF SHIFT</div><h1 id="reportTitle">End-of-Shift Asset Management &amp; Compliance Report</h1></div>
+        <div class="report-meta"><div><span>Date</span><strong id="rDate">—</strong></div><div><span>Report type</span><strong id="rReportType">—</strong></div><div><span>Coverage</span><strong id="rCoverage">—</strong></div><div><span>Period / Shift window</span><strong id="rShiftWindow">—</strong></div><div><span>Prepared by</span><strong id="rPrepared">—</strong></div></div>
       </div>
-      <section class="report-section summary-section"><div class="report-section-title-row"><div><h2>Shift Inventory Snapshot</h2><p class="section-subtitle">Movement and stock position by asset type</p></div><div class="status-pill" id="rStatus">On Track</div></div><div id="rInventorySummaryCards" class="inventory-summary-report-grid"></div></section>
-      <section class="report-section movement-section"><div class="report-section-title-row"><div><h2>Client Movement</h2><p class="section-subtitle">Sent, received, today's net and all-time assets held with each client</p></div></div><div id="rClientMovement" class="client-report-grid"></div><div class="notes-pair"><div class="note-box"><span>Movement notes</span><p id="rReceivedNotes">—</p></div><div class="note-box"><span>General notes</span><p id="rSentNotes">—</p></div></div></section>
-      <section class="report-section"><div class="report-section-title-row"><div><h2>Scheduled Movements</h2><p class="section-subtitle">Routine expectations versus actual completion</p></div></div><table><thead><tr><th>Client</th><th>Asset</th><th>Planned</th><th>Actual</th><th>Status</th><th>Notes</th></tr></thead><tbody id="rRoutineRows"></tbody></table></section>
+      <section class="report-section summary-section"><div class="report-section-title-row"><div><h2 id="rInventoryHeading">Shift Inventory Snapshot</h2><p id="rInventorySubtitle" class="section-subtitle">Movement and stock position by asset type</p></div><div class="status-pill" id="rStatus">On Track</div></div><div id="rInventorySummaryCards" class="inventory-summary-report-grid"></div></section>
+      <section class="report-section movement-section"><div class="report-section-title-row"><div><h2 id="rClientHeading">Client Movement</h2><p id="rClientSubtitle" class="section-subtitle">Sent, received, today's net and all-time assets held with each client</p></div></div><div id="rClientMovement" class="client-report-grid"></div><div class="notes-pair"><div class="note-box"><span>Movement notes</span><p id="rReceivedNotes">—</p></div><div class="note-box"><span>General notes</span><p id="rSentNotes">—</p></div></div></section>
+      <section class="report-section"><div class="report-section-title-row"><div><h2>Scheduled Movements</h2><p id="rScheduledSubtitle" class="section-subtitle">Routine expectations versus actual completion</p></div></div><table><thead><tr><th>Client</th><th>Asset</th><th>Planned</th><th>Actual</th><th>Status</th><th>Notes</th></tr></thead><tbody id="rRoutineRows"></tbody></table></section>
       <section class="report-section discarded-report-section"><div class="report-section-title-row"><div><h2>Discarded Assets</h2><p class="section-subtitle">Asset type, quantity discarded and reason</p></div></div><div id="rDiscardedAssetsToday" class="discarded-report-list"></div></section>
       <section class="report-section"><h2>Outstanding Issues / Risks</h2><table><thead><tr><th>Priority</th><th>Issue</th><th>Asset / Client</th><th>Impact</th><th>Action</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="rIssueRows"></tbody></table></section>
       <section class="report-section plan"><h2>Plan for Tomorrow</h2><p id="rTomorrow">—</p></section>
-      <footer class="report-footer"><div><span>End-of-Shift Sign-Off</span><strong id="rSignoff">—</strong></div><div><span>Overall EOD Status</span><strong id="rEodStatus">Normal</strong></div></footer>
+      <footer class="report-footer"><div><span id="rSignoffLabel">End-of-Shift Sign-Off</span><strong id="rSignoff">—</strong></div><div><span>Overall EOD Status</span><strong id="rEodStatus">Normal</strong></div></footer>
     </div>
   </div>
 

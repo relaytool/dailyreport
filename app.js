@@ -362,6 +362,8 @@
       return {
         key: "24hr",
         label: "24-hour period",
+        reportType: "End of Day report",
+        coverageText: "Day + Night shifts",
         startDate: reportDate,
         endDate,
         startTime: "07:00",
@@ -381,12 +383,39 @@
     };
   }
 
+  function isEndOfDayReport() {
+    return $("shiftSelect")?.value === "24hr";
+  }
+
+  function reportTypeLabel() {
+    return isEndOfDayReport() ? "End of Day report" : "End of Shift report";
+  }
+
+  function coverageLabel() {
+    return isEndOfDayReport() ? "Day + Night shifts" : shiftInfo().label;
+  }
+
   function updateShiftWindow() {
     const info = shiftInfo();
-    const dateNote = info.key === "24hr" ? "Report date is the shift start date." : "Report date is the shift end date.";
-    $("shiftWindow").innerHTML = `<strong>${escapeHtml(info.label)}</strong><span>${escapeHtml(info.windowText)}</span><small>${escapeHtml(dateNote)}</small>`;
-    $("rShift").textContent = info.label;
+    const eod = isEndOfDayReport();
+    const dateNote = eod
+      ? "End of Day report covering the full Day + Night shifts. Report date is the 07:00 start date."
+      : info.key === "night"
+        ? "Report date is the night shift end date."
+        : "Report date is the shift date.";
+    $("shiftWindow").innerHTML = `<strong>${escapeHtml(eod ? "End of Day • Day + Night shifts" : info.label)}</strong><span>${escapeHtml(info.windowText)}</span><small>${escapeHtml(dateNote)}</small>`;
     $("rShiftWindow").textContent = info.windowText;
+    $("pageTitle") && ($("pageTitle").textContent = eod ? "Asset Compliance — End of Day Report" : "Asset Compliance — End of Shift Report");
+    $("rCoverage") && ($("rCoverage").textContent = coverageLabel());
+    $("formPageTitle") && ($("formPageTitle").textContent = eod ? "End-of-Day Report" : "End-of-Shift Report");
+    $("formPageSubtitle") && ($("formPageSubtitle").textContent = eod
+      ? "Live from the Assets Inventory Ledger · covers both the Day and Night shifts from 07:00 to 07:00."
+      : "Live from the Assets Inventory Ledger · built for quick shift handover.");
+    $("reportSetupTitle") && ($("reportSetupTitle").textContent = eod ? "End of Day details" : "Shift details");
+    $("inventorySectionTitle") && ($("inventorySectionTitle").textContent = eod ? "Daily inventory snapshot" : "Shift inventory snapshot");
+    $("reviewSectionKicker") && ($("reviewSectionKicker").textContent = eod ? "Day + night review" : "Shift review");
+    $("signoffSectionTitle") && ($("signoffSectionTitle").textContent = eod ? "End-of-Day sign-off" : "End-of-shift sign-off");
+    $("reportPreview") && ($("reportPreview").alt = eod ? "Generated end-of-day report preview covering day and night shifts" : "Generated end-of-shift report preview");
   }
 
   function isInSelectedShift(timestamp) {
@@ -812,7 +841,7 @@
     const box = $("rClientMovement");
     const data = combinedClientData(rows);
     if (!data.length) {
-      box.innerHTML = `<div class="empty-report">No IN or OUT transactions recorded for this shift.</div>`;
+      box.innerHTML = `<div class="empty-report">${isEndOfDayReport() ? "No IN or OUT transactions recorded for this 24-hour Day + Night period." : "No IN or OUT transactions recorded for this shift."}</div>`;
       return;
     }
     box.innerHTML = data.map(c => `<div class="client-report-card"><div class="client-report-head"><div><span>Client</span><h3>${escapeHtml(c.client)}</h3></div></div><div class="client-movement-head"><span>Asset</span><span>In</span><span>Out</span><span>Today</span><span>All-time</span></div><div class="client-movement-list">${c.types.map(t => `<div class="client-movement-row"><span>${escapeHtml(t.asset)}</span><b class="movement-in">${formatQty(t.received)}</b><b class="movement-out">${formatQty(t.sent)}</b><b class="with-client ${t.withClient >= 0 ? "positive" : "negative"}">${t.withClient >= 0 ? "+" : ""}${formatQty(t.withClient)}</b><b class="with-client ${t.allTimeWithClient >= 0 ? "positive" : "negative"}">${t.allTimeWithClient >= 0 ? "+" : ""}${formatQty(t.allTimeWithClient)}</b></div>`).join("")}</div></div>`).join("");
@@ -822,7 +851,7 @@
     const body = $("rRoutineRows");
     const rows = getScheduleRows();
     if (!rows.length) {
-      body.innerHTML = `<tr><td colspan="6">No scheduled routine movements for this shift.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="6">${isEndOfDayReport() ? "No scheduled routine movements recorded across the Day + Night period." : "No scheduled routine movements for this shift."}</td></tr>`;
       return;
     }
     body.innerHTML = rows.map(item => {
@@ -836,7 +865,7 @@
     const box = $("rDiscardedAssetsToday");
     const data = assetTotals(shiftRows().filter(r => ["DISCARDED", "DISCARD"].includes(r.movement)));
     if (!data.length) {
-      box.innerHTML = `<div class="empty-report">No assets were discarded during this shift.</div>`;
+      box.innerHTML = `<div class="empty-report">${isEndOfDayReport() ? "No assets were discarded during the Day + Night period." : "No assets were discarded during this shift."}</div>`;
       return;
     }
     const date = $("reportDate").value;
@@ -865,10 +894,20 @@
 
   function updateReportDom() {
     const info = shiftInfo();
+    const eod = isEndOfDayReport();
     $("rDate").textContent = formatDate($("reportDate").value);
-    $("rShift").textContent = info.label;
     $("rShiftWindow").textContent = info.windowText;
     $("rPrepared").textContent = textValue("preparedBy");
+    $("rReportType").textContent = reportTypeLabel();
+    $("rCoverage").textContent = coverageLabel();
+    $("reportKicker").textContent = eod ? "ASSET COMPLIANCE • END OF DAY" : "ASSET COMPLIANCE • END OF SHIFT";
+    $("reportTitle").textContent = eod ? "End-of-Day Asset Management & Compliance Report" : "End-of-Shift Asset Management & Compliance Report";
+    $("rInventoryHeading").textContent = eod ? "Daily Asset Inventory" : "Shift Inventory Snapshot";
+    $("rInventorySubtitle").textContent = eod ? "Full 24-hour movement and closing stock position across Day + Night shifts" : "Movement and stock position by asset type";
+    $("rClientHeading").textContent = eod ? "Client Movements • Day + Night" : "Client Movement";
+    $("rClientSubtitle").textContent = eod ? "Sent, received and balances across the full Day + Night reporting period" : "Sent, received, today's net and all-time assets held with each client";
+    $("rScheduledSubtitle").textContent = eod ? "Routine expectations versus actual completion across Day + Night shifts" : "Routine expectations versus actual completion";
+    $("rSignoffLabel").textContent = eod ? "End-of-Day Sign-Off" : "End-of-Shift Sign-Off";
     const status = $("overallStatus").value;
     $("rStatus").textContent = status;
     $("rStatus").className = `status-pill ${status === "Critical" ? "critical" : status === "Attention Required" ? "attention" : ""}`;
@@ -937,26 +976,32 @@
   function reportFileName() {
     const date = $("reportDate").value || "report";
     const shiftValue = $("shiftSelect").value;
-    const shift = shiftValue === "night" ? "Night" : shiftValue === "24hr" ? "24hr" : "Day";
-    return `EOD_Asset_Report_${date.replaceAll("-", "")}_${shift}.png`;
+    const shift = shiftValue === "night" ? "Night" : shiftValue === "24hr" ? "EOD_DayNight" : "Day";
+    return `Asset_${shiftValue === "24hr" ? "EOD" : "Shift"}_Report_${date.replaceAll("-", "")}_${shift}.png`;
   }
 
   function renderSlackSummary() {
     const area = $("slackSummary");
     if (!area) return;
     area.value = buildSlackSummary();
-    $("summaryMeta").textContent = `${shiftRows().length.toLocaleString()} shift transactions • ${getScheduleRows().length.toLocaleString()} scheduled movements • ${selectedNotables().length.toLocaleString()} notable`;
+    $("summaryMeta").textContent = `${shiftRows().length.toLocaleString()} ${isEndOfDayReport() ? "24-hour" : "shift"} transactions • ${getScheduleRows().length.toLocaleString()} scheduled movements • ${selectedNotables().length.toLocaleString()} notable`;
   }
 
   function buildSlackSummary() {
     const info = shiftInfo();
     const lines = [];
-    lines.push("[:package:](https://a.slack-edge.com/production-standard-emoji-assets/16.0/apple-medium/1f4e6@2x.png) ASSET COMPLIANCE — END OF SHIFT REPORT");
-    lines.push(`Shift: ${info.label} • ${info.windowText}`);
+    if (isEndOfDayReport()) {
+      lines.push("📦 ASSET COMPLIANCE — END OF DAY REPORT");
+      lines.push(`Period: 24-hour period • ${info.windowText}`);
+      lines.push("Coverage: Day + Night shifts");
+    } else {
+      lines.push("📦 ASSET COMPLIANCE — END OF SHIFT REPORT");
+      lines.push(`Shift: ${info.label} • ${info.windowText}`);
+    }
     lines.push(`Report date: ${formatDate($("reportDate").value)}`);
     lines.push("");
 
-    lines.push("📦 ASSET INVENTORY");
+    lines.push(isEndOfDayReport() ? "📦 ASSET INVENTORY — FULL DAY" : "📦 ASSET INVENTORY");
     inventorySnapshotData().forEach(item => {
       const idx = state.assets.findIndex(a => sameName(a, item.asset));
       const opening = Number($(`open_${idx}`)?.value || 0);
@@ -991,7 +1036,7 @@
         const note = item.note ? ` | Note: ${item.note}` : "";
         lines.push(`• ${status} ${item.status.toUpperCase()} — ${item.routine.client} — ${item.routine.asset} — Planned ${formatQty(item.routine.quantity)} | Actual ${actual}${destination}${note}`);
       });
-    } else lines.push("• No scheduled movements for this shift.");
+    } else lines.push(isEndOfDayReport() ? "• No scheduled movements recorded for the Day + Night period." : "• No scheduled movements for this shift.");
     lines.push("");
 
     lines.push(`⭐ NOTABLE TRANSACTIONS (${selectedNotables().length} selected from ${shiftRows().length})`);
