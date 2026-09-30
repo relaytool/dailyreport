@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <title>Asset Transactions • Current Shift</title>
-  <link rel="stylesheet" href="transactions.css?v=20260930-v1">
+  <link rel="stylesheet" href="transactions.css?v=20260930-v2">
 </head>
 <body>
   <header class="topbar">
@@ -46,7 +46,7 @@
       </div>
       <div class="toolbar-group search-group">
         <label for="searchInput">Search</label>
-        <input id="searchInput" type="search" placeholder="Client, asset, comment…" autocomplete="off">
+        <input id="searchInput" type="search" placeholder="Client, asset, vehicle reg…" autocomplete="off">
       </div>
     </section>
 
@@ -74,18 +74,19 @@
         </div>
 
         <div class="composer-note">
-          Edit anything below before copying. The photo is included in the rich copy when the browser supports HTML clipboard content.
+          Edit the message before sending. On iPhone and Android, use Share to send the text and transaction photo together through the device share sheet. Desktop keeps rich clipboard copy.
         </div>
 
         <div id="messageEditor" class="message-editor" contenteditable="true" spellcheck="false" aria-label="Editable transaction message">
-          <p class="editor-placeholder">Select a transaction group to build the message.</p>
+          <div class="editor-placeholder">Select a transaction group to build the message.</div>
         </div>
 
         <div id="photoStatus" class="photo-status"></div>
 
         <div class="composer-actions">
-          <button id="copyMessageBtn" class="btn primary" type="button" disabled>📋 Copy for WhatsApp / Slack</button>
-          <button id="resetMessageBtn" class="btn secondary" type="button" disabled>↺ Reset message</button>
+          <button id="shareMessageBtn" class="btn primary" type="button" disabled>📤 Share with photo</button>
+          <button id="copyMessageBtn" class="btn secondary" type="button" disabled>📋 Copy message</button>
+          <button id="resetMessageBtn" class="btn ghost" type="button" disabled>↺ Reset message</button>
         </div>
         <div id="copyStatus" class="copy-status"></div>
       </aside>
@@ -96,6 +97,6 @@
 
   <script src="config.js?v=20260927-daily-v3"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="transactions.js?v=20260930-v1"></script>
+  <script src="transactions.js?v=20260930-v2"></script>
 </body>
 </html>

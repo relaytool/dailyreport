@@ -57,6 +57,7 @@
       state.search = $("searchInput").value.trim().toLowerCase();
       renderGroups();
     });
+    $("shareMessageBtn")?.addEventListener("click", shareMessage);
     $("copyMessageBtn")?.addEventListener("click", copyMessage);
     $("resetMessageBtn")?.addEventListener("click", () => {
       if (state.selectedGroup) buildMessageForGroup(state.selectedGroup, true);
@@ -215,11 +216,13 @@
       return {
         rowNumber: headerIndex + offset + 2,
         timestamp,
+        timestampMs: parseDate(timestamp).getTime(),
         client: valueAt(row, idx.client),
         movement,
         asset: valueAt(row, idx.asset),
         quantity: numberAt(row, idx.quantity),
         user: valueAt(row, idx.user),
+        vehicleReg: valueAt(row, idx.comment),
         comment: valueAt(row, idx.comment),
         image: valueAt(row, idx.image)
       };
@@ -266,7 +269,8 @@
       group.rows.sort((a, b) => parseDate(a.timestamp) - parseDate(b.timestamp) || a.rowNumber - b.rowNumber);
       group.directions = unique(group.rows.map(row => normalizeMovement(row.movement)));
       group.photoLinks = unique(group.rows.map(row => row.image).filter(Boolean));
-      group.comments = unique(group.rows.map(row => row.comment).filter(Boolean));
+      group.vehicleRegs = unique(group.rows.map(row => row.vehicleReg).filter(Boolean));
+      group.comments = group.vehicleRegs.slice();
       group.assetSummary = summarizeAssets(group.rows);
     });
     return groups;
@@ -274,7 +278,7 @@
 
   function matchesSearch(tx) {
     if (!state.search) return true;
-    const haystack = [tx.client, tx.asset, tx.movement, tx.comment, tx.user].join(" ").toLowerCase();
+    const haystack = [tx.client, tx.asset, tx.movement, tx.vehicleReg, tx.user].join(" ").toLowerCase();
     return haystack.includes(state.search);
   }
 
@@ -315,14 +319,14 @@
     const first = new Date(group.firstTime);
     const last = new Date(group.lastTime);
     const sameMinute = group.firstTime === group.lastTime || Math.round((group.lastTime - group.firstTime) / 1000) < 60;
-    const windowText = sameMinute ? formatTime(first) : `${formatTime(first)}–${formatTime(last)}`;
+    const windowText = sameMinute ? formatMessageTime(first) : `${formatMessageTime(first)}–${formatMessageTime(last)}`;
     const chips = group.assetSummary.map(item => `<span class="asset-chip">${escapeHtml(formatQty(item.quantity))} ${escapeHtml(item.asset)}</span>`).join("");
     const dirs = group.directions.map(direction => `<span class="direction-pill ${direction === "Outbound" ? "outbound" : "inbound"}">${direction === "Outbound" ? "↗ OUTBOUND" : "↙ INBOUND"}</span>`).join("");
     const photoCount = group.photoLinks.length;
     return `<article class="transaction-group" data-card-id="${escapeAttr(group.id)}">
       <button type="button" class="group-button" data-group-id="${escapeAttr(group.id)}">
         <div class="group-main">
-          <div class="group-time">${escapeHtml(formatTime(first))}</div>
+          <div class="group-time">${escapeHtml(formatMessageTime(first))}</div>
           <div><div class="group-client">${escapeHtml(group.client)}</div><span class="group-window">5-min window · ${escapeHtml(windowText)}</span></div>
           <div class="asset-summary">${chips}</div>
           <div class="group-arrow">›</div>
@@ -348,7 +352,7 @@
     const group = state.selectedGroup;
     if (!group) return;
     const first = new Date(group.firstTime);
-    $("selectedMeta").textContent = `${group.client} · ${formatTime(first)} · ${group.rows.length} rows`;
+    $("selectedMeta").textContent = `${group.client} · ${formatMessageTime(first)} · ${group.rows.length} rows`;
   }
 
   async function buildMessageForGroup(group, overwrite = true) {
@@ -357,6 +361,7 @@
     if (!overwrite && editor.innerText.trim()) return;
     state.selectedHtml = "";
     state.selectedPhotos = [];
+    $("shareMessageBtn").disabled = true;
     $("copyMessageBtn").disabled = true;
     $("resetMessageBtn").disabled = false;
     $("photoStatus").textContent = "Loading transaction photo(s)…";
@@ -367,6 +372,7 @@
     editor.innerHTML = html;
     state.selectedHtml = html;
     state.selectedPhotos = photos;
+    $("shareMessageBtn").disabled = false;
     $("photoStatus").textContent = photos.length
       ? `${photos.length} transaction photo${photos.length === 1 ? "" : "s"} included.`
       : "No transaction photo is attached to this group.";
@@ -374,37 +380,52 @@
   }
 
   function messageHtmlWithoutPhotos(group) {
-    const blocks = movementBlocks(group);
-    const comment = group.comments.length ? group.comments.join(" · ") : "—";
-    const time = formatDateTime(group.firstTime) + (group.lastTime !== group.firstTime ? `–${formatTime(new Date(group.lastTime))}` : "");
-    return `<div><p><strong>📦 ${escapeHtml(group.client)}</strong></p>${blocks}<p>🕒 <strong>Time:</strong> ${escapeHtml(time)}</p><p>💬 <strong>Comment:</strong> ${escapeHtml(comment)}</p></div>`;
+    const lines = messageLines(group);
+    return `<div class="message-bubble">${lines.map(line => `<span class="line${line.type ? ` ${line.type}` : ""}">${escapeHtml(line.text)}</span>`).join("")}</div>`;
   }
 
   function messageHtml(group, photos) {
-    const base = messageHtmlWithoutPhotos(group);
     const photoHtml = photos.length
-      ? `<p><strong>📷 Photo${photos.length > 1 ? "s" : ""}</strong></p>${photos.map(photo => `<p><img src="${photo.dataUrl || escapeAttr(photo.url)}" alt="Transaction photo" data-transaction-photo="true"></p>`).join("")}`
+      ? photos.map(photo => photo.dataUrl
+          ? `<img class="message-photo" src="${escapeAttr(photo.dataUrl)}" alt="Transaction photo" data-transaction-photo="true">`
+          : "").join("")
       : "";
-    return `${base}${photoHtml}`;
+    return `<div class="message-content">${photoHtml}${messageHtmlWithoutPhotos(group)}</div>`;
   }
 
-  function movementBlocks(group) {
+  function messageLines(group) {
+    const lines = [];
+    const time = formatMessageTime(group.firstTime);
+    const vehicleReg = group.vehicleRegs?.length ? group.vehicleRegs.join(" / ") : "—";
     const byMovement = new Map();
     group.rows.forEach(row => {
       const direction = normalizeMovement(row.movement);
       if (!byMovement.has(direction)) byMovement.set(direction, []);
       byMovement.get(direction).push(row);
     });
-    const html = [];
+
     ["Outbound", "Inbound", "Other"].forEach(direction => {
       const rows = byMovement.get(direction);
       if (!rows?.length) return;
       const sentence = summarizeAssets(rows).map(item => `${formatQty(item.quantity)} ${item.asset}`).join(", ");
-      const label = direction === "Outbound" ? "↗ OUTBOUND" : direction === "Inbound" ? "↙ INBOUND" : "↔ MOVEMENT";
-      const verb = direction === "Outbound" ? "Sent" : direction === "Inbound" ? "Received" : "Recorded";
-      html.push(`<p>${label}<br><strong>📦 ${verb}:</strong> ${escapeHtml(sentence)}</p>`);
+      if (direction === "Outbound") {
+        lines.push({ text: "↗ OUTBOUND", type: "direction" });
+        lines.push({ text: `🏭 Client : ${group.client}` });
+        lines.push({ text: `📦 Sent: ${sentence}` });
+      } else if (direction === "Inbound") {
+        lines.push({ text: "↙ INBOUND", type: "direction" });
+        lines.push({ text: `🏭 Client : ${group.client}` });
+        lines.push({ text: `📦 Received: ${sentence}` });
+      } else {
+        lines.push({ text: "↔ MOVEMENT", type: "direction" });
+        lines.push({ text: `🏭 Client : ${group.client}` });
+        lines.push({ text: `📦 Recorded: ${sentence}` });
+      }
     });
-    return html.join("");
+
+    lines.push({ text: `🕒 Time: ${time}` });
+    lines.push({ text: `🚚 Vehicle Reg: ${vehicleReg}` });
+    return lines;
   }
 
   async function loadGroupPhotos(group) {
@@ -412,23 +433,24 @@
     const results = [];
     for (const url of links) {
       const id = driveFileIdFromLink(url);
-      let dataUrl = "";
+      let image = null;
       if (id && state.accessToken) {
-        dataUrl = await fetchDriveDataUrl(id);
+        image = await fetchDriveImage(id);
       }
-      results.push({ url, dataUrl });
+      results.push({ url, dataUrl: image?.dataUrl || "", blob: image?.blob || null });
     }
     return results;
   }
 
-  async function fetchDriveDataUrl(fileId) {
+  async function fetchDriveImage(fileId) {
     try {
       const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
         headers: { Authorization: `Bearer ${state.accessToken}` },
         cache: "force-cache"
       });
       if (!response.ok) throw new Error(`Drive image request failed (${response.status})`);
-      return await blobToDataUrl(await response.blob());
+      const blob = await response.blob();
+      return { blob, dataUrl: await blobToDataUrl(blob) };
     } catch (error) {
       console.warn("Could not load Drive image as a blob:", error);
       try {
@@ -436,11 +458,14 @@
           headers: { Authorization: `Bearer ${state.accessToken}` },
           cache: "force-cache"
         });
-        if (fallback.ok) return await blobToDataUrl(await fallback.blob());
+        if (fallback.ok) {
+          const blob = await fallback.blob();
+          return { blob, dataUrl: await blobToDataUrl(blob) };
+        }
       } catch (fallbackError) {
         console.warn("Drive thumbnail fallback failed:", fallbackError);
       }
-      return "";
+      return null;
     }
   }
 
@@ -448,9 +473,48 @@
     $("selectedMeta").textContent = "Select a transaction group";
     $("messageEditor").innerHTML = `<p class="editor-placeholder">Select a transaction group to build the message.</p>`;
     $("photoStatus").textContent = "";
+    $("shareMessageBtn").disabled = true;
     $("copyMessageBtn").disabled = true;
     $("resetMessageBtn").disabled = true;
     $("copyStatus").textContent = "";
+  }
+
+  async function shareMessage() {
+    const editor = $("messageEditor");
+    const plain = editor.innerText.trim();
+    if (!plain) return;
+
+    const files = (state.selectedPhotos || [])
+      .filter(photo => photo.blob)
+      .slice(0, 8)
+      .map((photo, index) => {
+        const type = photo.blob.type || "image/jpeg";
+        const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg";
+        return new File([photo.blob], `transaction-${index + 1}.${ext}`, { type });
+      });
+
+    try {
+      if (navigator.share) {
+        const payload = { text: plain };
+        if (files.length) {
+          if (navigator.canShare && !navigator.canShare({ files })) {
+            throw new Error("This browser cannot share the transaction photo with the message.");
+          }
+          payload.files = files;
+        }
+        await navigator.share(payload);
+        $("copyStatus").textContent = files.length ? "Shared with text and photo." : "Shared message text.";
+        return;
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.warn("Native share failed:", error);
+    }
+
+    await copyMessage();
+    $("copyStatus").textContent = files.length
+      ? "Device sharing is unavailable here. Rich copy was used instead."
+      : "Device sharing is unavailable here. Message copied.";
   }
 
   async function copyMessage() {
@@ -461,15 +525,15 @@
 
     try {
       if (navigator.clipboard?.write && window.ClipboardItem) {
-        const item = new ClipboardItem({
+        const itemParts = {
           "text/html": new Blob([html], { type: "text/html" }),
           "text/plain": new Blob([plain], { type: "text/plain" })
-        });
-        await navigator.clipboard.write([item]);
-        $("copyStatus").textContent = "Copied rich message. Paste into WhatsApp Web or Slack.";
+        };
+        await navigator.clipboard.write([new ClipboardItem(itemParts)]);
+        $("copyStatus").textContent = "Copied rich message. On mobile, use Share with photo for the most reliable photo + text send.";
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(plain);
-        $("copyStatus").textContent = "Copied text. Rich image clipboard is unavailable in this browser.";
+        $("copyStatus").textContent = "Copied text. Use Share with photo to include the image on iPhone/Android.";
       } else {
         fallbackCopy(editor);
         $("copyStatus").textContent = "Copied message.";
@@ -478,7 +542,7 @@
       console.warn("Rich clipboard failed:", error);
       try {
         await navigator.clipboard.writeText(plain);
-        $("copyStatus").textContent = "Copied text. The rich image copy was blocked by the browser.";
+        $("copyStatus").textContent = "Copied text. Use Share with photo to include the image on iPhone/Android.";
       } catch (_) {
         fallbackCopy(editor);
         $("copyStatus").textContent = "Copied message.";
@@ -500,6 +564,12 @@
     const wrapper = document.createElement("div");
     wrapper.innerHTML = html;
     wrapper.querySelectorAll(".message-loading,.editor-placeholder").forEach(el => el.remove());
+    wrapper.querySelectorAll(".message-photo").forEach(img => {
+      img.removeAttribute("contenteditable");
+      img.style.maxWidth = "100%";
+      img.style.height = "auto";
+      img.style.display = "block";
+    });
     return wrapper.innerHTML;
   }
 
@@ -555,7 +625,15 @@
   }
 
   function parseDate(value) {
-    const d = value instanceof Date ? new Date(value) : new Date(String(value));
+    let d;
+    if (value instanceof Date) {
+      d = new Date(value.getTime());
+    } else if (typeof value === "number") {
+      d = new Date(value);
+    } else {
+      const text = String(value ?? "").trim();
+      d = new Date(text);
+    }
     return Number.isNaN(d.getTime()) ? new Date(0) : d;
   }
 
@@ -598,6 +676,11 @@
 
   function formatTime(value) {
     return new Intl.DateTimeFormat("en-GB", { timeZone:"Europe/London", hour:"2-digit", minute:"2-digit", hourCycle:"h23" }).format(parseDate(value));
+  }
+
+  function formatMessageTime(value) {
+    const raw = formatTime(value);
+    return raw.replace(/^0(?=\d)/, "");
   }
 
   function formatDateTime(value) {
