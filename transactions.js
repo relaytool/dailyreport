@@ -14,6 +14,7 @@
     selectedGroup: null,
     selectedHtml: "",
     selectedPhotos: [],
+    receiptGroup: null,
     viewMode: "current",
     search: ""
   };
@@ -59,6 +60,19 @@
     });
     $("shareMessageBtn")?.addEventListener("click", shareMessage);
     $("copyMessageBtn")?.addEventListener("click", copyMessage);
+    $("printReceiptBtn")?.addEventListener("click", openReceiptEditor);
+    $("closeReceiptBtn")?.addEventListener("click", closeReceiptEditor);
+    $("cancelReceiptBtn")?.addEventListener("click", closeReceiptEditor);
+    $("printReceiptConfirmBtn")?.addEventListener("click", printReceipt);
+    ["receiptClientName", "receiptClientAddress", "receiptSender", "receiptReceiver"].forEach(id => {
+      $(id)?.addEventListener("input", renderReceiptPreview);
+    });
+    $("receiptModal")?.addEventListener("click", event => {
+      if (event.target === $("receiptModal")) closeReceiptEditor();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !$("receiptModal")?.classList.contains("hidden")) closeReceiptEditor();
+    });
     $("resetMessageBtn")?.addEventListener("click", () => {
       if (state.selectedGroup) buildMessageForGroup(state.selectedGroup, true);
     });
@@ -363,6 +377,7 @@
     state.selectedPhotos = [];
     $("shareMessageBtn").disabled = true;
     $("copyMessageBtn").disabled = true;
+    $("printReceiptBtn").disabled = true;
     $("resetMessageBtn").disabled = false;
     $("photoStatus").textContent = "Loading transaction photo(s)…";
     editor.innerHTML = messageHtmlWithoutPhotos(group) + `<p class="message-loading">Loading photo…</p>`;
@@ -377,6 +392,7 @@
       ? `${photos.length} transaction photo${photos.length === 1 ? "" : "s"} included.`
       : "No transaction photo is attached to this group.";
     $("copyMessageBtn").disabled = false;
+    $("printReceiptBtn").disabled = false;
   }
 
   function messageHtmlWithoutPhotos(group) {
@@ -475,8 +491,191 @@
     $("photoStatus").textContent = "";
     $("shareMessageBtn").disabled = true;
     $("copyMessageBtn").disabled = true;
+    $("printReceiptBtn").disabled = true;
     $("resetMessageBtn").disabled = true;
     $("copyStatus").textContent = "";
+  }
+
+  function openReceiptEditor() {
+    const group = state.selectedGroup;
+    if (!group) return;
+    state.receiptGroup = group;
+
+    const firstRow = group.rows[0] || {};
+    $("receiptClientName").value = group.client || "";
+    $("receiptClientAddress").value = "";
+    $("receiptSender").value = firstRow.user || state.email || "";
+    $("receiptReceiver").value = "";
+    renderReceiptPreview();
+    $("receiptModal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeReceiptEditor() {
+    $("receiptModal")?.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderReceiptPreview() {
+    const group = state.receiptGroup || state.selectedGroup;
+    if (!group || !$("receiptPreview")) return;
+    const clientName = $("receiptClientName")?.value.trim() || group.client || "Client";
+    const clientAddress = $("receiptClientAddress")?.value.trim() || "Address not provided";
+    const sender = $("receiptSender")?.value.trim() || "";
+    const receiver = $("receiptReceiver")?.value.trim() || "";
+    $("receiptPreview").innerHTML = receiptDocumentHtml(group, { clientName, clientAddress, sender, receiver });
+  }
+
+  function receiptDocumentHtml(group, details) {
+    const first = new Date(group.firstTime);
+    const receiptRef = `REL-${group.rows[0]?.rowNumber || "TX"}-${londonDateKey(first).replaceAll("-", "")}`;
+    const vehicleReg = group.vehicleRegs?.length ? group.vehicleRegs.join(" / ") : "—";
+    const sentRows = group.rows.filter(row => normalizeMovement(row.movement) === "Outbound");
+    const receivedRows = group.rows.filter(row => normalizeMovement(row.movement) === "Inbound");
+    const otherRows = group.rows.filter(row => normalizeMovement(row.movement) === "Other");
+    const makeRows = (rows, direction) => summarizeAssets(rows).map(item => ({ direction, asset: item.asset, quantity: item.quantity }));
+    const items = [
+      ...makeRows(sentRows, "Sent"),
+      ...makeRows(receivedRows, "Received"),
+      ...makeRows(otherRows, "Recorded")
+    ];
+    const photoHtml = (state.selectedPhotos || []).filter(photo => photo.dataUrl).map(photo =>
+      `<img src="${escapeAttr(photo.dataUrl)}" alt="Transaction photo">`
+    ).join("");
+    const tableRows = items.length ? items.map(item => `
+      <tr>
+        <td>${escapeHtml(item.direction)}</td>
+        <td>${escapeHtml(item.asset)}</td>
+        <td class="qty">${escapeHtml(formatQty(item.quantity))}</td>
+      </tr>`).join("") : `
+      <tr><td colspan="3">No item rows available for this transaction.</td></tr>`;
+
+    return `<div class="receipt-preview-page">
+      <div class="receipt-preview-header">
+        <div>
+          <div class="receipt-brand">Relay</div>
+          <div class="receipt-address">3 Iron Bridge Road<br>West Drayton<br>UB11 1BF</div>
+        </div>
+        <div>
+          <div class="receipt-doc-title">TRANSACTION RECEIPT</div>
+          <div class="receipt-meta">Ref: ${escapeHtml(receiptRef)}<br>${escapeHtml(formatDateTime(first))}</div>
+        </div>
+      </div>
+
+      <div class="receipt-address-row">
+        <div class="receipt-block">
+          <div class="receipt-block-label">From</div>
+          <strong>Relay</strong>
+          <div class="receipt-address">3 Iron Bridge Road\nWest Drayton\nUB11 1BF</div>
+        </div>
+        <div class="receipt-block">
+          <div class="receipt-block-label">To</div>
+          <strong>${escapeHtml(details.clientName)}</strong>
+          <div class="receipt-address">${escapeHtml(details.clientAddress)}</div>
+        </div>
+      </div>
+
+      <div class="receipt-details">
+        <div><div class="receipt-detail-label">Transaction time</div><div class="receipt-detail-value">${escapeHtml(formatDateTime(first))}</div></div>
+        <div><div class="receipt-detail-label">Vehicle Reg</div><div class="receipt-detail-value">${escapeHtml(vehicleReg)}</div></div>
+        <div><div class="receipt-detail-label">Transaction rows</div><div class="receipt-detail-value">${escapeHtml(String(group.rows.length))}</div></div>
+      </div>
+
+      <div class="receipt-section-title">Items</div>
+      <table class="receipt-table">
+        <thead><tr><th>Movement</th><th>Item</th><th class="qty">Quantity</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+
+      <div class="receipt-section-title">Transaction photo${(state.selectedPhotos || []).filter(photo => photo.dataUrl).length === 1 ? "" : "s"}</div>
+      ${photoHtml ? `<div class="receipt-photo-grid">${photoHtml}</div>` : `<div class="receipt-no-photo">No transaction photo is available for this transaction.</div>`}
+
+      <div class="receipt-signatures">
+        <div class="receipt-signature">
+          <div class="receipt-signature-label">Sender</div>
+          <div class="receipt-signature-name">${escapeHtml(details.sender || "")}</div>
+        </div>
+        <div class="receipt-signature">
+          <div class="receipt-signature-label">Receiver</div>
+          <div class="receipt-signature-name">${escapeHtml(details.receiver || "")}</div>
+        </div>
+      </div>
+
+      <div class="receipt-footer"><span>Relay transaction receipt</span><span>${escapeHtml(group.client || "")}</span></div>
+    </div>`;
+  }
+
+  function printReceipt() {
+    const group = state.receiptGroup || state.selectedGroup;
+    if (!group) return;
+    const clientName = $("receiptClientName")?.value.trim() || group.client || "Client";
+    const clientAddress = $("receiptClientAddress")?.value.trim() || "Address not provided";
+    const sender = $("receiptSender")?.value.trim() || "";
+    const receiver = $("receiptReceiver")?.value.trim() || "";
+    const documentHtml = receiptDocumentHtml(group, { clientName, clientAddress, sender, receiver });
+    const printWindow = window.open("", "_blank", "width=900,height=1200");
+    if (!printWindow) {
+      toast("Please allow pop-ups to print the receipt.");
+      return;
+    }
+
+    const printCss = `
+      @page { size: A4 portrait; margin: 0; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #fff; color: #17202a; font-family: Inter, Arial, sans-serif; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .receipt-preview-page { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fff; padding: 17mm 16mm 14mm; }
+      .receipt-preview-header { display:flex; justify-content:space-between; gap:28px; padding-bottom:18px; border-bottom:2px solid #17202a; }
+      .receipt-brand { font-size:25px; font-weight:900; letter-spacing:-.03em; }
+      .receipt-doc-title { font-size:18px; font-weight:850; margin-top:4px; text-align:right; }
+      .receipt-meta { margin-top:5px; color:#64748b; font-size:11px; text-align:right; line-height:1.5; }
+      .receipt-address { white-space:pre-line; color:#475569; font-size:11px; line-height:1.45; }
+      .receipt-address-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:22px 0; border-bottom:1px solid #dfe5ec; }
+      .receipt-block-label,.receipt-detail-label { font-size:9px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; color:#64748b; margin-bottom:5px; }
+      .receipt-block strong { display:block; font-size:13px; margin-bottom:3px; }
+      .receipt-details { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; padding:18px 0; border-bottom:1px solid #dfe5ec; }
+      .receipt-detail-value { font-size:12px; font-weight:750; }
+      .receipt-table { width:100%; border-collapse:collapse; margin-top:20px; font-size:11px; }
+      .receipt-table th { padding:9px 8px; border-bottom:2px solid #17202a; text-align:left; font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+      .receipt-table td { padding:9px 8px; border-bottom:1px solid #e5eaf0; vertical-align:top; }
+      .receipt-table .qty { text-align:right; font-weight:800; white-space:nowrap; }
+      .receipt-section-title { font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin-top:22px; margin-bottom:8px; }
+      .receipt-photo-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .receipt-photo-grid img { display:block; width:100%; max-height:330px; object-fit:contain; border:1px solid #dfe5ec; background:#f8fafc; border-radius:8px; }
+      .receipt-no-photo { padding:14px; border:1px dashed #cbd5e1; border-radius:8px; color:#64748b; font-size:11px; }
+      .receipt-signatures { display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:36px; padding-top:14px; }
+      .receipt-signature { border-top:1px solid #17202a; padding-top:8px; min-height:58px; }
+      .receipt-signature-label { font-size:9px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:#64748b; }
+      .receipt-signature-name { font-size:12px; font-weight:750; margin-top:5px; }
+      .receipt-footer { margin-top:26px; padding-top:10px; border-top:1px solid #dfe5ec; color:#64748b; font-size:9px; display:flex; justify-content:space-between; gap:12px; }
+      @media print { .receipt-preview-page { width:210mm; min-height:297mm; } }
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Relay Transaction Receipt</title><style>${printCss}</style></head><body>${documentHtml}</body></html>`);
+    printWindow.document.close();
+
+    const waitForImagesThenPrint = () => {
+      const images = [...printWindow.document.images];
+      const waits = images.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", resolve, { once: true });
+        });
+      });
+      Promise.all(waits).then(() => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 150);
+      });
+    };
+    if (printWindow.document.readyState === "complete") {
+      waitForImagesThenPrint();
+    } else {
+      printWindow.onload = waitForImagesThenPrint;
+    }
   }
 
   async function shareMessage() {

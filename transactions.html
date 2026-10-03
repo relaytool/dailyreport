@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <title>Asset Transactions • Current Shift</title>
-  <link rel="stylesheet" href="transactions.css?v=20260930-v2">
+  <link rel="stylesheet" href="transactions.css?v=20261003-receipt1">
 </head>
 <body>
   <header class="topbar">
@@ -86,6 +86,7 @@
         <div class="composer-actions">
           <button id="shareMessageBtn" class="btn primary" type="button" disabled>📤 Share with photo</button>
           <button id="copyMessageBtn" class="btn secondary" type="button" disabled>📋 Copy message</button>
+          <button id="printReceiptBtn" class="btn secondary" type="button" disabled>🧾 Print receipt</button>
           <button id="resetMessageBtn" class="btn ghost" type="button" disabled>↺ Reset message</button>
         </div>
         <div id="copyStatus" class="copy-status"></div>
@@ -95,8 +96,47 @@
 
   <div id="toast" class="toast"></div>
 
+  <div id="receiptModal" class="receipt-modal hidden" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
+    <div class="receipt-dialog">
+      <div class="receipt-modal-head">
+        <div>
+          <span class="eyebrow">A4 RECEIPT</span>
+          <h2 id="receiptModalTitle">Print transaction receipt</h2>
+          <p>Review the delivery details before printing. The transaction items and photo come from the selected group.</p>
+        </div>
+        <button id="closeReceiptBtn" class="btn ghost" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="receipt-form-grid">
+        <div class="receipt-field full">
+          <label for="receiptClientName">Client name</label>
+          <input id="receiptClientName" type="text" autocomplete="organization" placeholder="Client name">
+        </div>
+        <div class="receipt-field full">
+          <label for="receiptClientAddress">Client address <span>(optional)</span></label>
+          <textarea id="receiptClientAddress" rows="3" placeholder="Enter client address if needed"></textarea>
+        </div>
+        <div class="receipt-field">
+          <label for="receiptSender">Sender name</label>
+          <input id="receiptSender" type="text" autocomplete="name" placeholder="Sender name">
+        </div>
+        <div class="receipt-field">
+          <label for="receiptReceiver">Receiver name</label>
+          <input id="receiptReceiver" type="text" autocomplete="name" placeholder="Receiver name">
+        </div>
+      </div>
+
+      <div id="receiptPreview" class="receipt-preview"></div>
+
+      <div class="receipt-modal-actions">
+        <button id="cancelReceiptBtn" class="btn ghost" type="button">Cancel</button>
+        <button id="printReceiptConfirmBtn" class="btn primary" type="button">🖨️ Print A4 receipt</button>
+      </div>
+    </div>
+  </div>
+
   <script src="config.js?v=20260927-daily-v3"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="transactions.js?v=20260930-v2"></script>
+  <script src="transactions.js?v=20261003-receipt1"></script>
 </body>
 </html>
