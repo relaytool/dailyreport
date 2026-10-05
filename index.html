@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d1822">
   <title id="pageTitle">Asset Compliance — End of Shift Report</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261004-pdf10">
   <script src="https://accounts.google.com/gsi/client" async defer onload="window.dispatchEvent(new Event('fm-google-loaded'))"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -131,8 +131,9 @@
 
       <section class="output-grid hidden" id="outputCard">
         <div class="card output-card">
-          <div class="section-head"><div><span class="section-kicker">PNG report</span><h2>Generated daily report</h2></div><button type="button" class="btn secondary" id="downloadPngBtn">Download PNG again</button></div>
-          <div id="reportPreviewWrap" class="report-preview-wrap hidden"><img id="reportPreview" alt="Generated end-of-shift report preview"></div>
+          <div class="section-head"><div><span class="section-kicker">PDF report</span><h2>Generated daily report</h2></div><button type="button" class="btn secondary" id="downloadPdfBtn">Download PDF again</button></div>
+          <div id="reportPreviewWrap" class="report-preview-wrap hidden"><img id="reportPreview" alt="First page of generated report"></div>
+          <p class="pdf-preview-note">The preview above is the first page. Client cards contain clickable links to their daily transaction ledgers in the PDF.</p>
         </div>
         <div class="card output-card">
           <div class="section-head"><div><span class="section-kicker">Copy-ready</span><h2>Slack summary</h2><p class="summary-edit-hint">Edit the message below before copying. Your changes will stay until the report is regenerated.</p></div><span id="summaryMeta" class="summary-meta"></span></div>
@@ -170,9 +171,9 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script src="config.js?v=20260927-daily-v3"></script>
-  <script src="routine-alert-utils.js?v=20260927-daily-v3"></script>
-  <script src="app.js?v=20260927-daily-v3"></script>
+  <script src="config.js?v=20261004-pdf10"></script>
+  <script src="routine-alert-utils.js?v=20261004-pdf10"></script>
+  <script src="app.js?v=20261004-pdf10"></script>
   <script>
     document.getElementById('addIssueBtn')?.addEventListener('click', () => window.addIssueRow());
   </script>

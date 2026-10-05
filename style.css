@@ -35,7 +35,7 @@
 .movement-card h3{margin:3px 0 0;font-size:15px}
 .client-total{text-align:right}.client-total span{display:block;font-size:9px;text-transform:uppercase;color:#87929a;font-weight:800}.client-total strong{font-size:20px}
 .asset-chip-grid{display:flex;flex-wrap:wrap;gap:7px}
-.asset-chip{display:flex;align-items:center;justify-content:space-between;gap:15px;min-width:145px;padding:7px 9px;border:1px solid #dce2e6;border-radius:8px;background:#fff}
+.asset-chip{display:flex;align-items:center;justify-content:space-between;gap:15px;min-width:145px;padding:7px 9px 11px;border:1px solid #dce2e6;border-radius:8px;background:#fff}
 .asset-chip span{font-size:10px;color:#4e5b64}.asset-chip strong{font-size:12px}
 .type-summary{margin-top:12px;border:1px solid #dce2e6;border-radius:11px;background:#f6f8f9;padding:11px 12px}
 .type-summary-heading{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#68747d;font-weight:800;margin-bottom:8px}
@@ -96,12 +96,12 @@
 
 /* Shift inventory snapshot */
 .inventory-summary-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
-.inventory-summary-card{border:1px solid #dce2e6;border-radius:13px;background:#fafcfc;padding:14px}
+.inventory-summary-card{border:1px solid #dce2e6;border-radius:13px;background:#fafcfc;padding:14px 14px 18px}
 .inventory-summary-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .inventory-summary-head strong{font-size:14px;color:#17202a}
 .shift-difference{font-size:11px;font-weight:900;padding:3px 7px;border-radius:999px}
 .shift-difference.positive{color:#267647;background:#e8f4eb}.shift-difference.negative{color:#a13e3e;background:#f8e9e9}
-.inventory-summary-values{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.inventory-summary-values{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-bottom:2px}
 .inventory-summary-values>div{border-radius:9px;padding:9px;background:#f0f3f5}
 .inventory-summary-values span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:#74808a;font-weight:800}
 .inventory-summary-values b{display:block;margin-top:3px;font-size:18px}
@@ -149,3 +149,22 @@ body{background:linear-gradient(180deg,#eef2f5 0,#f7f9fb 360px,#f3f5f8 100%);col
 
 .connection-actions-inline{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .upload-ledger-btn{cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+
+/* PDF report client navigation */
+.report-client-link{display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:5px 8px;border:1px solid #cbd5dc;border-radius:7px;background:#fff;color:#2d5f8b;text-decoration:none;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px}
+.report-client-link:hover{border-color:#8ea2b0;background:#f3f7f9}
+.pdf-preview-note{margin:8px 0 0;color:#778690;font-size:10px;line-height:1.45}
+
+/* PDF v4: PDF export is drawn natively with jsPDF; keep the hidden report DOM lightweight. */
+.pdf-capture-page .report-section-title-row h2{font-size:22px!important}
+.pdf-capture-page .section-subtitle{font-size:11px!important;color:#65737d!important}
+.pdf-capture-page .report-kicker{font-size:12px!important}
+.pdf-capture-page .inventory-summary-card{box-shadow:0 3px 10px #10202a10}
+.pdf-capture-page .inventory-summary-head{gap:12px}
+.pdf-capture-page .client-movement-head{font-size:9px!important}
+.pdf-capture-page .client-movement-list{gap:3px!important}
+.pdf-capture-page .client-movement-row{padding:5px 0!important}
+.pdf-capture-page .client-movement-row span{font-size:10px!important}
+.pdf-capture-page .client-movement-row b{font-size:11px!important}
+.pdf-capture-page .report-client-link{color:#185b8b!important;border-color:#94aabd!important;background:#eef5f9!important}
+.pdf-capture-page .report-footer strong{font-size:13px!important}
