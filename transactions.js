@@ -4,7 +4,6 @@
   const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
   const SESSION_KEY = "fmAssetSession";
   const TOKEN_CACHE_EMAIL_KEY = "fmAssetAccessToken";
-  const WINDOW_MS = 5 * 60 * 1000;
   const state = {
     accessToken: null,
     email: "",
@@ -245,54 +244,77 @@
 
   function buildGroups() {
     const period = periodWindow(state.viewMode);
+
+    // A group is now defined ONLY by the exact transaction timestamp.
+    // Different clients at the same timestamp are intentionally combined.
     const rows = state.transactions
       .filter(tx => isWithinWindow(tx.timestamp, period))
-      .filter(tx => matchesSearch(tx))
-      .sort((a, b) => parseDate(a.timestamp) - parseDate(b.timestamp));
+      .sort((a, b) => parseDate(a.timestamp) - parseDate(b.timestamp) || a.rowNumber - b.rowNumber);
 
-    const byClient = new Map();
+    const buckets = new Map();
+
     for (const tx of rows) {
-      const key = normalize(tx.client);
-      if (!byClient.has(key)) byClient.set(key, []);
-      byClient.get(key).push(tx);
-    }
+      const time = parseDate(tx.timestamp).getTime();
+      if (!Number.isFinite(time)) continue;
 
-    const groups = [];
-    for (const [clientKey, clientRows] of byClient.entries()) {
-      let bucket = null;
-      for (const tx of clientRows) {
-        const time = parseDate(tx.timestamp).getTime();
-        if (!bucket || time - bucket.anchorTime > WINDOW_MS) {
-          bucket = {
-            id: `${clientKey}-${tx.rowNumber}-${time}`,
-            client: tx.client,
-            rows: [],
-            anchorTime: time,
-            firstTime: time,
-            lastTime: time
-          };
-          groups.push(bucket);
-        }
-        bucket.rows.push(tx);
-        bucket.lastTime = time;
+      if (!buckets.has(time)) {
+        buckets.set(time, {
+          id: `time-${time}`,
+          client: tx.client,
+          clients: [],
+          rows: [],
+          firstTime: time,
+          lastTime: time,
+          timestampKey: time
+        });
+      }
+
+      const bucket = buckets.get(time);
+      bucket.rows.push(tx);
+      bucket.lastTime = time;
+      if (!bucket.clients.some(client => normalize(client) === normalize(tx.client))) {
+        bucket.clients.push(tx.client);
       }
     }
 
+    const groups = [...buckets.values()];
+
     groups.sort((a, b) => a.firstTime - b.firstTime);
+
     groups.forEach(group => {
-      group.rows.sort((a, b) => parseDate(a.timestamp) - parseDate(b.timestamp) || a.rowNumber - b.rowNumber);
+      group.rows.sort(
+        (a, b) => parseDate(a.timestamp) - parseDate(b.timestamp) || a.rowNumber - b.rowNumber
+      );
+
+      group.clients = unique(group.clients);
+      group.isMixed = group.clients.length > 1;
+      group.client = group.isMixed ? "Mixed delivery" : (group.clients[0] || "Unknown client");
+
       group.directions = unique(group.rows.map(row => normalizeMovement(row.movement)));
       group.photoLinks = unique(group.rows.map(row => row.image).filter(Boolean));
       group.vehicleRegs = unique(group.rows.map(row => row.vehicleReg).filter(Boolean));
       group.comments = group.vehicleRegs.slice();
       group.assetSummary = summarizeAssets(group.rows);
     });
+
+    // Search an exact-time group as a whole. If one client matches,
+    // keep every other client sharing that exact timestamp in the group.
+    if (state.search) {
+      return groups.filter(group => group.rows.some(matchesSearch));
+    }
+
     return groups;
   }
 
   function matchesSearch(tx) {
     if (!state.search) return true;
-    const haystack = [tx.client, tx.asset, tx.movement, tx.vehicleReg, tx.user].join(" ").toLowerCase();
+    const haystack = [
+      tx.client,
+      tx.asset,
+      tx.movement,
+      tx.vehicleReg,
+      tx.user
+    ].join(" ").toLowerCase();
     return haystack.includes(state.search);
   }
 
@@ -331,21 +353,38 @@
 
   function groupCard(group) {
     const first = new Date(group.firstTime);
-    const last = new Date(group.lastTime);
-    const sameMinute = group.firstTime === group.lastTime || Math.round((group.lastTime - group.firstTime) / 1000) < 60;
-    const windowText = sameMinute ? formatMessageTime(first) : `${formatMessageTime(first)}–${formatMessageTime(last)}`;
-    const chips = group.assetSummary.map(item => `<span class="asset-chip">${escapeHtml(formatQty(item.quantity))} ${escapeHtml(item.asset)}</span>`).join("");
-    const dirs = group.directions.map(direction => `<span class="direction-pill ${direction === "Outbound" ? "outbound" : "inbound"}">${direction === "Outbound" ? "↗ OUTBOUND" : "↙ INBOUND"}</span>`).join("");
+    const chips = group.assetSummary
+      .map(item => `<span class="asset-chip">${escapeHtml(formatQty(item.quantity))} ${escapeHtml(item.asset)}</span>`)
+      .join("");
+
+    const dirs = group.directions
+      .map(direction =>
+        `<span class="direction-pill ${direction === "Outbound" ? "outbound" : direction === "Inbound" ? "inbound" : ""}">
+          ${direction === "Outbound" ? "↗ OUTBOUND" : direction === "Inbound" ? "↙ INBOUND" : "↔ MOVEMENT"}
+        </span>`
+      )
+      .join("");
+
     const photoCount = group.photoLinks.length;
+    const clientSummary = group.isMixed
+      ? group.clients.join(" · ")
+      : (group.clients[0] || "Unknown client");
+
     return `<article class="transaction-group" data-card-id="${escapeAttr(group.id)}">
       <button type="button" class="group-button" data-group-id="${escapeAttr(group.id)}">
         <div class="group-main">
           <div class="group-time">${escapeHtml(formatMessageTime(first))}</div>
-          <div><div class="group-client">${escapeHtml(group.client)}</div><span class="group-window">5-min window · ${escapeHtml(windowText)}</span></div>
+          <div>
+            <div class="group-client">${escapeHtml(group.isMixed ? "Mixed delivery" : clientSummary)}</div>
+            <span class="group-window">${escapeHtml(clientSummary)} · exact same timestamp</span>
+          </div>
           <div class="asset-summary">${chips}</div>
           <div class="group-arrow">›</div>
         </div>
-        <div class="group-meta"><div class="direction-pills">${dirs || `<span class="direction-pill">OTHER</span>`}</div><span>${group.rows.length} rows${photoCount ? ` · ${photoCount} photo${photoCount === 1 ? "" : "s"}` : ""}</span></div>
+        <div class="group-meta">
+          <div class="direction-pills">${dirs || `<span class="direction-pill">OTHER</span>`}</div>
+          <span>${group.rows.length} rows${photoCount ? ` · ${photoCount} photo${photoCount === 1 ? "" : "s"}` : ""}</span>
+        </div>
       </button>
     </article>`;
   }
@@ -366,7 +405,8 @@
     const group = state.selectedGroup;
     if (!group) return;
     const first = new Date(group.firstTime);
-    $("selectedMeta").textContent = `${group.client} · ${formatMessageTime(first)} · ${group.rows.length} rows`;
+    const clientLabel = group.isMixed ? `Mixed delivery · ${group.clients.join(" · ")}` : (group.client || "Unknown client");
+    $("selectedMeta").textContent = `${clientLabel} · ${formatMessageTime(first)} · ${group.rows.length} rows`;
   }
 
   async function buildMessageForGroup(group, overwrite = true) {
@@ -413,31 +453,58 @@
     const lines = [];
     const time = formatMessageTime(group.firstTime);
     const vehicleReg = group.vehicleRegs?.length ? group.vehicleRegs.join(" / ") : "—";
-    const byMovement = new Map();
+
+    // Keep every client separate, while sharing one timestamp, vehicle
+    // registration and photo set for the complete exact-time group.
+    if (group.isMixed) {
+      lines.push({ text: "📦 MIXED DELIVERY", type: "direction" });
+      lines.push({ text: `🏭 Clients: ${group.clients.join(" · ")}` });
+    }
+
+    const byClient = new Map();
     group.rows.forEach(row => {
-      const direction = normalizeMovement(row.movement);
-      if (!byMovement.has(direction)) byMovement.set(direction, []);
-      byMovement.get(direction).push(row);
+      const clientKey = normalize(row.client);
+      if (!byClient.has(clientKey)) {
+        byClient.set(clientKey, {
+          client: row.client,
+          rows: []
+        });
+      }
+      byClient.get(clientKey).rows.push(row);
     });
 
-    ["Outbound", "Inbound", "Other"].forEach(direction => {
-      const rows = byMovement.get(direction);
-      if (!rows?.length) return;
-      const sentence = summarizeAssets(rows).map(item => `${formatQty(item.quantity)} ${item.asset}`).join(", ");
-      if (direction === "Outbound") {
-        lines.push({ text: "↗ OUTBOUND", type: "direction" });
-        lines.push({ text: `🏭 Client : ${group.client}` });
-        lines.push({ text: `📦 Sent: ${sentence}` });
-      } else if (direction === "Inbound") {
-        lines.push({ text: "↙ INBOUND", type: "direction" });
-        lines.push({ text: `🏭 Client : ${group.client}` });
-        lines.push({ text: `📦 Received: ${sentence}` });
-      } else {
-        lines.push({ text: "↔ MOVEMENT", type: "direction" });
-        lines.push({ text: `🏭 Client : ${group.client}` });
-        lines.push({ text: `📦 Recorded: ${sentence}` });
+    for (const clientGroup of byClient.values()) {
+      if (group.isMixed || byClient.size > 1) {
+        lines.push({ text: `🏭 Client: ${clientGroup.client}` });
       }
-    });
+
+      const byMovement = new Map();
+      clientGroup.rows.forEach(row => {
+        const direction = normalizeMovement(row.movement);
+        if (!byMovement.has(direction)) byMovement.set(direction, []);
+        byMovement.get(direction).push(row);
+      });
+
+      ["Outbound", "Inbound", "Other"].forEach(direction => {
+        const rows = byMovement.get(direction);
+        if (!rows?.length) return;
+
+        const sentence = summarizeAssets(rows)
+          .map(item => `${formatQty(item.quantity)} ${item.asset}`)
+          .join(", ");
+
+        if (direction === "Outbound") {
+          lines.push({ text: "↗ OUTBOUND", type: "direction" });
+          lines.push({ text: `📦 Sent: ${sentence}` });
+        } else if (direction === "Inbound") {
+          lines.push({ text: "↙ INBOUND", type: "direction" });
+          lines.push({ text: `📦 Received: ${sentence}` });
+        } else {
+          lines.push({ text: "↔ MOVEMENT", type: "direction" });
+          lines.push({ text: `📦 Recorded: ${sentence}` });
+        }
+      });
+    }
 
     lines.push({ text: `🕒 Time: ${time}` });
     lines.push({ text: `🚚 Vehicle Reg: ${vehicleReg}` });
@@ -502,7 +569,7 @@
     state.receiptGroup = group;
 
     const firstRow = group.rows[0] || {};
-    $("receiptClientName").value = group.client || "";
+    $("receiptClientName").value = group.isMixed ? `Mixed delivery — ${group.clients.join(" · ")}` : (group.client || "");
     $("receiptClientAddress").value = "";
     $("receiptSender").value = firstRow.user || state.email || "";
     $("receiptReceiver").value = "";
@@ -530,25 +597,63 @@
     const first = new Date(group.firstTime);
     const receiptRef = `REL-${group.rows[0]?.rowNumber || "TX"}-${londonDateKey(first).replaceAll("-", "")}`;
     const vehicleReg = group.vehicleRegs?.length ? group.vehicleRegs.join(" / ") : "—";
-    const sentRows = group.rows.filter(row => normalizeMovement(row.movement) === "Outbound");
-    const receivedRows = group.rows.filter(row => normalizeMovement(row.movement) === "Inbound");
-    const otherRows = group.rows.filter(row => normalizeMovement(row.movement) === "Other");
-    const makeRows = (rows, direction) => summarizeAssets(rows).map(item => ({ direction, asset: item.asset, quantity: item.quantity }));
-    const items = [
-      ...makeRows(sentRows, "Sent"),
-      ...makeRows(receivedRows, "Received"),
-      ...makeRows(otherRows, "Recorded")
-    ];
-    const photoHtml = (state.selectedPhotos || []).filter(photo => photo.dataUrl).map(photo =>
-      `<img src="${escapeAttr(photo.dataUrl)}" alt="Transaction photo">`
-    ).join("");
-    const tableRows = items.length ? items.map(item => `
-      <tr>
-        <td>${escapeHtml(item.direction)}</td>
-        <td>${escapeHtml(item.asset)}</td>
-        <td class="qty">${escapeHtml(formatQty(item.quantity))}</td>
-      </tr>`).join("") : `
-      <tr><td colspan="3">No item rows available for this transaction.</td></tr>`;
+    const photoHtml = (state.selectedPhotos || [])
+      .filter(photo => photo.dataUrl)
+      .map(photo => `<img src="${escapeAttr(photo.dataUrl)}" alt="Transaction photo">`)
+      .join("");
+
+    const mixedClients = group.isMixed || group.clients.length > 1;
+
+    const rowsByClient = new Map();
+    group.rows.forEach(row => {
+      const key = normalize(row.client);
+      if (!rowsByClient.has(key)) {
+        rowsByClient.set(key, {
+          client: row.client,
+          rows: []
+        });
+      }
+      rowsByClient.get(key).rows.push(row);
+    });
+
+    const tableRows = [];
+    for (const clientGroup of rowsByClient.values()) {
+      const sentRows = clientGroup.rows.filter(row => normalizeMovement(row.movement) === "Outbound");
+      const receivedRows = clientGroup.rows.filter(row => normalizeMovement(row.movement) === "Inbound");
+      const otherRows = clientGroup.rows.filter(row => normalizeMovement(row.movement) === "Other");
+
+      const makeRows = (rows, direction) => summarizeAssets(rows).map(item => ({
+        client: clientGroup.client,
+        direction,
+        asset: item.asset,
+        quantity: item.quantity
+      }));
+
+      tableRows.push(
+        ...makeRows(sentRows, "Sent"),
+        ...makeRows(receivedRows, "Received"),
+        ...makeRows(otherRows, "Recorded")
+      );
+    }
+
+    const tableRowsHtml = tableRows.length
+      ? tableRows.map(item => `
+          <tr>
+            ${mixedClients ? `<td>${escapeHtml(item.client)}</td>` : ""}
+            <td>${escapeHtml(item.direction)}</td>
+            <td>${escapeHtml(item.asset)}</td>
+            <td class="qty">${escapeHtml(formatQty(item.quantity))}</td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="${mixedClients ? 4 : 3}">No item rows available for this transaction.</td></tr>`;
+
+    const tableHeadHtml = mixedClients
+      ? `<tr><th>Client</th><th>Movement</th><th>Item</th><th class="qty">Quantity</th></tr>`
+      : `<tr><th>Movement</th><th>Item</th><th class="qty">Quantity</th></tr>`;
+
+    const clientDisplay = mixedClients
+      ? group.clients.join(" · ")
+      : (group.client || "Client");
 
     return `<div class="receipt-preview-page">
       <div class="receipt-preview-header">
@@ -569,8 +674,8 @@
           <div class="receipt-address">3 Iron Bridge Road\nWest Drayton\nUB11 1BF</div>
         </div>
         <div class="receipt-block">
-          <div class="receipt-block-label">To</div>
-          <strong>${escapeHtml(details.clientName)}</strong>
+          <div class="receipt-block-label">${mixedClients ? "Clients" : "To"}</div>
+          <strong>${escapeHtml(details.clientName || clientDisplay)}</strong>
           <div class="receipt-address">${escapeHtml(details.clientAddress)}</div>
         </div>
       </div>
@@ -581,10 +686,10 @@
         <div><div class="receipt-detail-label">Transaction rows</div><div class="receipt-detail-value">${escapeHtml(String(group.rows.length))}</div></div>
       </div>
 
-      <div class="receipt-section-title">Items</div>
+      <div class="receipt-section-title">${mixedClients ? "Items by client" : "Items"}</div>
       <table class="receipt-table">
-        <thead><tr><th>Movement</th><th>Item</th><th class="qty">Quantity</th></tr></thead>
-        <tbody>${tableRows}</tbody>
+        <thead>${tableHeadHtml}</thead>
+        <tbody>${tableRowsHtml}</tbody>
       </table>
 
       <div class="receipt-section-title">Transaction photo${(state.selectedPhotos || []).filter(photo => photo.dataUrl).length === 1 ? "" : "s"}</div>
@@ -601,7 +706,7 @@
         </div>
       </div>
 
-      <div class="receipt-footer"><span>Relay transaction receipt</span><span>${escapeHtml(group.client || "")}</span></div>
+      <div class="receipt-footer"><span>Relay transaction receipt</span><span>${escapeHtml(clientDisplay)}</span></div>
     </div>`;
   }
 

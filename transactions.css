@@ -211,3 +211,7 @@ select:focus,input[type="search"]:focus{border-color:#93c5fd;box-shadow:0 0 0 3p
   .receipt-modal-actions{display:grid;grid-template-columns:1fr 1fr}
   .receipt-modal-actions .btn{width:100%}
 }
+
+/* Exact-timestamp mixed delivery refinements */
+.group-window{line-height:1.35}
+.receipt-table th:first-child,.receipt-table td:first-child{min-width:110px}

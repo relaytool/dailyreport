@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <title>Asset Transactions • Current Shift</title>
-  <link rel="stylesheet" href="transactions.css?v=20261003-receipt1">
+  <link rel="stylesheet" href="transactions.css?v=20261008-exact-time-v1">
 </head>
 <body>
   <header class="topbar">
@@ -42,7 +42,7 @@
       </div>
       <div class="toolbar-info">
         <span id="periodLabel">—</span>
-        <small id="periodHelp">Same client transactions are grouped when they fall within a 5-minute window.</small>
+        <small id="periodHelp">Transactions are grouped only when their timestamps are exactly the same. Different clients at that exact time are combined into one mixed delivery.</small>
       </div>
       <div class="toolbar-group search-group">
         <label for="searchInput">Search</label>
@@ -137,6 +137,6 @@
 
   <script src="config.js?v=20260927-daily-v3"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="transactions.js?v=20261003-receipt1"></script>
+  <script src="transactions.js?v=20261008-exact-time-v1"></script>
 </body>
 </html>
