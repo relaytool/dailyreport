@@ -33,6 +33,14 @@ const CONFIG = {
     TRANSACTIONS_SHEET_NAME:
         "Asset Transactions",
 
+    // Optional additions introduced by the asset-tools dashboard. Older
+    // workbooks can omit these sheets; the reporting tool will still load.
+    ASSET_AVAILABILITY_SHEET_NAME:
+        "Asset Availability",
+
+    CLIENT_LEDGER_ADJUSTMENTS_SHEET_NAME:
+        "Client Ledger Adjustments",
+
     CLIENT_LIST_SHEET_NAME:
         "Client List",
 

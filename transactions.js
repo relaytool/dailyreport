@@ -8,6 +8,7 @@
     accessToken: null,
     email: "",
     transactions: [],
+    adjustments: [],
     groups: [],
     selectedGroupId: null,
     selectedGroup: null,
@@ -175,11 +176,16 @@
     }
     setSyncStatus("Syncing Asset Transactions…");
     try {
-      const rows = await getValues(CONFIG.INVENTORY_LEDGER_SHEET_ID, CONFIG.TRANSACTIONS_SHEET_NAME);
+      const [rows, adjustmentRows] = await Promise.all([
+        getValues(CONFIG.INVENTORY_LEDGER_SHEET_ID, CONFIG.TRANSACTIONS_SHEET_NAME),
+        getOptionalValues(CONFIG.INVENTORY_LEDGER_SHEET_ID, CONFIG.CLIENT_LEDGER_ADJUSTMENTS_SHEET_NAME)
+      ]);
       state.transactions = parseTransactions(rows);
+      state.adjustments = parseClientLedgerAdjustments(adjustmentRows);
       const window = periodWindow(state.viewMode);
       const count = state.transactions.filter(tx => isWithinWindow(tx.timestamp, window)).length;
-      setSyncStatus(`Live Sheets data • ${count.toLocaleString()} transactions in this period • ${formatTime(new Date())}`);
+      const adjustmentCount = state.adjustments.filter(tx => isWithinWindow(tx.timestamp, window)).length;
+      setSyncStatus(`Live Sheets data • ${count.toLocaleString()} asset movements${adjustmentCount ? ` · ${adjustmentCount.toLocaleString()} normalisations` : ""} in this period • ${formatTime(new Date())}`);
       setConnectedUi(true);
       renderGroups();
     } catch (error) {
@@ -202,6 +208,53 @@
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data?.error?.message || `Sheets request failed (${response.status})`);
     return data.values || [];
+  }
+
+  async function getOptionalValues(spreadsheetId, sheetName) {
+    if (!sheetName) return [];
+    try { return await getValues(spreadsheetId, sheetName); }
+    catch (error) { console.warn(`Optional sheet not available: ${sheetName}`, error?.message || error); return []; }
+  }
+
+  function parseClientLedgerAdjustments(rows) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const h = rows[0].map(normalizeHeader);
+    const find = aliases => aliases.map(normalizeHeader).reduce((found, wanted) => found >= 0 ? found : h.indexOf(wanted), -1);
+    const idx = {
+      timestamp: find(["timestamp", "date", "datetime"]),
+      client: find(["client", "client name"]),
+      movement: find(["movement", "type", "direction"]),
+      asset: find(["asset", "asset name", "item"]),
+      quantity: find(["quantity", "qty", "delta"]),
+      user: find(["user", "entered by", "email"]),
+      comment: find(["comment", "comments", "notes", "reason"]),
+      previous: find(["previous balance", "old balance"]),
+      target: find(["target balance"]),
+      id: find(["adjustment id", "id"])
+    };
+    if ([idx.timestamp, idx.client, idx.asset].some(index => index < 0)) return [];
+    return rows.slice(1).map((row, offset) => {
+      if (String(idx.movement >= 0 ? row[idx.movement] : "").trim().toUpperCase() !== "NORMALISATION") return null;
+      const previousBalance = idx.previous >= 0 && row[idx.previous] !== "" ? numberAtValue(row[idx.previous]) : null;
+      const targetBalance = idx.target >= 0 && row[idx.target] !== "" ? numberAtValue(row[idx.target]) : null;
+      let quantity = idx.quantity >= 0 && row[idx.quantity] !== "" ? numberAtValue(row[idx.quantity]) : null;
+      if (quantity === null && previousBalance !== null && targetBalance !== null) quantity = targetBalance - previousBalance;
+      const timestamp = row[idx.timestamp];
+      return {
+        rowNumber: offset + 2,
+        timestamp,
+        timestampMs: parseDate(timestamp).getTime(),
+        client: valueAt(row, idx.client),
+        movement: "NORMALISATION",
+        asset: valueAt(row, idx.asset),
+        quantity: quantity ?? 0,
+        user: valueAt(row, idx.user),
+        comment: valueAt(row, idx.comment),
+        previousBalance,
+        targetBalance,
+        adjustmentId: valueAt(row, idx.id)
+      };
+    }).filter(row => row && row.client && row.asset && row.timestamp);
   }
 
   function parseTransactions(rows) {
@@ -320,6 +373,7 @@
 
   function renderGroups() {
     state.groups = buildGroups();
+    renderNormalisations();
     const container = $("transactionGroups");
     $("groupCount").textContent = `${state.groups.length.toLocaleString()} group${state.groups.length === 1 ? "" : "s"}`;
     const count = state.transactions.filter(tx => isWithinWindow(tx.timestamp, periodWindow(state.viewMode))).length;
@@ -349,6 +403,36 @@
     } else {
       selectGroup(state.groups[0].id);
     }
+  }
+
+  function renderNormalisations() {
+    const container = $("normalisationGroups");
+    const countLabel = $("normalisationCount");
+    if (!container) return;
+    const period = periodWindow(state.viewMode);
+    let rows = (state.adjustments || []).filter(row => isWithinWindow(row.timestamp, period));
+    if (state.search) {
+      rows = rows.filter(row => [row.client, row.asset, row.comment, row.user, row.movement].join(" ").toLowerCase().includes(state.search));
+    }
+    rows.sort((a, b) => parseDate(b.timestamp) - parseDate(a.timestamp) || b.rowNumber - a.rowNumber);
+    if (countLabel) countLabel.textContent = `${rows.length.toLocaleString()} adjustment${rows.length === 1 ? "" : "s"}`;
+    if (!rows.length) {
+      const message = !state.accessToken && !state.transactions.length
+        ? "Connect Google Sheets to load ledger corrections."
+        : `No ledger normalisations match this period${state.search ? " and search" : ""}.`;
+      container.innerHTML = `<div class="no-results">${escapeHtml(message)}</div>`;
+      return;
+    }
+    container.innerHTML = rows.map(row => {
+      const delta = numberAtValue(row.quantity);
+      const balanceText = row.previousBalance !== null && row.previousBalance !== undefined && row.targetBalance !== null && row.targetBalance !== undefined
+        ? `${formatQty(row.previousBalance)} → ${formatQty(row.targetBalance)}` : "Balance corrected";
+      return `<article class="normalisation-card">
+        <div><small>${escapeHtml(formatDateTime(row.timestamp))}</small><strong>${escapeHtml(row.client)}</strong><p>${escapeHtml(row.asset)}</p></div>
+        <div><small>Ledger adjustment</small><strong class="normalisation-delta ${delta >= 0 ? "positive" : "negative"}">${delta > 0 ? "+" : ""}${formatQty(delta)}</strong><p class="normalisation-balance">${escapeHtml(balanceText)}</p><p>${escapeHtml(row.user || "")}</p></div>
+        <div class="normalisation-reason"><small>Reason</small><strong>${escapeHtml(row.comment || "No reason recorded")}</strong><p>Client ledger only · warehouse stock unchanged</p></div>
+      </article>`;
+    }).join("");
   }
 
   function groupCard(group) {
@@ -1031,6 +1115,7 @@
     state.accessToken = null;
     state.email = "";
     state.transactions = [];
+    state.adjustments = [];
     state.groups = [];
     setConnectedUi(false);
     setSyncStatus("Signed out. Connect Google Sheets to load live data.");

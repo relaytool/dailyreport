@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d1822">
   <title id="pageTitle">Asset Compliance — End of Shift Report</title>
-  <link rel="stylesheet" href="style.css?v=20261004-pdf10">
+  <link rel="stylesheet" href="style.css?v=20261014-warehouse-snapshot1">
   <script src="https://accounts.google.com/gsi/client" async defer onload="window.dispatchEvent(new Event('fm-google-loaded'))"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -69,6 +69,24 @@
         <label class="status-field">Overall status<select id="overallStatus"><option>On Track</option><option>Attention Required</option><option>Critical</option></select></label>
       </section>
 
+      <section class="card warehouse-snapshot-card">
+        <div class="section-head row-head">
+          <div><span class="section-kicker">Warehouse status</span><h2>Quick warehouse snapshot</h2></div>
+          <button type="button" class="btn primary" id="generateWarehouseSnapshotBtn">Prepare snapshot report</button>
+        </div>
+        <p class="form-hint">A current view of total warehouse stock and any available-to-send counts entered for today.</p>
+        <div id="warehouseSnapshotPreview" class="warehouse-snapshot-preview"><div class="empty-panel">Connect or upload the ledger to view warehouse stock.</div></div>
+        <div id="warehouseSnapshotActions" class="warehouse-snapshot-actions hidden">
+          <span id="warehouseSnapshotMeta" class="snapshot-meta"></span>
+          <div class="output-actions">
+            <button type="button" class="btn secondary" id="copyWarehouseSnapshotBtn">Copy summary</button>
+            <button type="button" class="btn secondary" id="downloadWarehouseSnapshotBtn">Download PDF</button>
+            <button type="button" class="btn secondary" id="downloadWarehouseSnapshotTxtBtn">Download TXT</button>
+          </div>
+        </div>
+        <textarea id="warehouseSnapshotText" class="warehouse-snapshot-text hidden" rows="8" readonly aria-label="Quick warehouse snapshot summary"></textarea>
+      </section>
+
       <section class="card">
         <div class="section-head row-head">
           <div><span class="section-number">03</span><div><span class="section-kicker">Live movements</span><h2>Client movement</h2></div></div>
@@ -76,6 +94,10 @@
         </div>
         <p class="form-hint">All Sent and Received transactions in the selected period, with today’s and all-time client balances. For the 24-hour option this covers both the Day and Night shifts. Notable selections are saved locally on this device.</p>
         <div id="clientMovementPreview" class="client-movement-preview"></div>
+        <div class="ledger-adjustments-panel">
+          <div class="ledger-adjustments-title"><h3>Ledger normalisations in this period</h3><span>Client balance only</span></div>
+          <div id="ledgerAdjustmentsPreview" class="ledger-adjustments-list"><div class="empty-panel">Connect or upload the ledger to load balance corrections.</div></div>
+        </div>
         <div class="grid two notes-grid">
           <label>Movement notes<textarea id="receivedNotes" rows="2" placeholder="Optional notes"></textarea></label>
           <label>General notes<textarea id="sentNotes" rows="2" placeholder="Optional notes"></textarea></label>
@@ -152,6 +174,7 @@
       </div>
       <section class="report-section summary-section"><div class="report-section-title-row"><div><h2 id="rInventoryHeading">Shift Inventory Snapshot</h2><p id="rInventorySubtitle" class="section-subtitle">Movement and stock position by asset type</p></div><div class="status-pill" id="rStatus">On Track</div></div><div id="rInventorySummaryCards" class="inventory-summary-report-grid"></div></section>
       <section class="report-section movement-section"><div class="report-section-title-row"><div><h2 id="rClientHeading">Client Movement</h2><p id="rClientSubtitle" class="section-subtitle">Sent, received, today's net and all-time assets held with each client</p></div></div><div id="rClientMovement" class="client-report-grid"></div><div class="notes-pair"><div class="note-box"><span>Movement notes</span><p id="rReceivedNotes">—</p></div><div class="note-box"><span>General notes</span><p id="rSentNotes">—</p></div></div></section>
+      <section class="report-section" id="rLedgerAdjustmentsSection"><div class="report-section-title-row"><div><h2>Client Ledger Normalisations</h2><p class="section-subtitle">Balance corrections recorded for this reporting period; warehouse stock is unaffected</p></div></div><div id="rLedgerAdjustments" class="ledger-adjustments-list"></div></section>
       <section class="report-section"><div class="report-section-title-row"><div><h2>Scheduled Movements</h2><p id="rScheduledSubtitle" class="section-subtitle">Routine expectations versus actual completion</p></div></div><table><thead><tr><th>Client</th><th>Asset</th><th>Planned</th><th>Actual</th><th>Status</th><th>Notes</th></tr></thead><tbody id="rRoutineRows"></tbody></table></section>
       <section class="report-section discarded-report-section"><div class="report-section-title-row"><div><h2>Discarded Assets</h2><p class="section-subtitle">Asset type, quantity discarded and reason</p></div></div><div id="rDiscardedAssetsToday" class="discarded-report-list"></div></section>
       <section class="report-section"><h2>Outstanding Issues / Risks</h2><table><thead><tr><th>Priority</th><th>Issue</th><th>Asset / Client</th><th>Impact</th><th>Action</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="rIssueRows"></tbody></table></section>
@@ -171,9 +194,9 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script src="config.js?v=20261004-pdf10"></script>
-  <script src="routine-alert-utils.js?v=20261004-pdf10"></script>
-  <script src="app.js?v=20261004-pdf10"></script>
+  <script src="config.js?v=20261014-warehouse-snapshot1"></script>
+  <script src="routine-alert-utils.js?v=20261014-warehouse-snapshot1"></script>
+  <script src="app.js?v=20261014-warehouse-snapshot1"></script>
   <script>
     document.getElementById('addIssueBtn')?.addEventListener('click', () => window.addIssueRow());
   </script>

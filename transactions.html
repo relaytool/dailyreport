@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <title>Asset Transactions • Current Shift</title>
-  <link rel="stylesheet" href="transactions.css?v=20261008-exact-time-v1">
+  <link rel="stylesheet" href="transactions.css?v=20261014-normalisations1">
 </head>
 <body>
   <header class="topbar">
@@ -62,6 +62,14 @@
         <div id="transactionGroups" class="transaction-groups">
           <div class="empty-panel">Connect Google Sheets to load the current shift.</div>
         </div>
+        <section class="ledger-normalisations-section">
+          <div class="section-head normalisation-section-head">
+            <div><span class="eyebrow">CLIENT LEDGER</span><h2>Normalisations</h2></div>
+            <span id="normalisationCount" class="muted">0 adjustments</span>
+          </div>
+          <p class="normalisation-section-note">Client balance corrections are shown separately from physical asset movements. They do not change warehouse stock.</p>
+          <div id="normalisationGroups" class="normalisation-groups"><div class="empty-panel">Connect Google Sheets to load ledger corrections.</div></div>
+        </section>
       </div>
 
       <aside class="composer-panel card">
@@ -135,8 +143,8 @@
     </div>
   </div>
 
-  <script src="config.js?v=20260927-daily-v3"></script>
+  <script src="config.js?v=20261014-normalisations1"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="transactions.js?v=20261008-exact-time-v1"></script>
+  <script src="transactions.js?v=20261014-normalisations1"></script>
 </body>
 </html>

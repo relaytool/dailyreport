@@ -168,3 +168,30 @@ body{background:linear-gradient(180deg,#eef2f5 0,#f7f9fb 360px,#f3f5f8 100%);col
 .pdf-capture-page .client-movement-row b{font-size:11px!important}
 .pdf-capture-page .report-client-link{color:#185b8b!important;border-color:#94aabd!important;background:#eef5f9!important}
 .pdf-capture-page .report-footer strong{font-size:13px!important}
+
+
+/* Quick warehouse snapshot */
+.warehouse-snapshot-preview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.warehouse-snapshot-item{border:1px solid #dce2e6;border-radius:11px;background:#fbfcfc;padding:12px;min-width:0}
+.warehouse-snapshot-item strong{display:block;font-size:13px;line-height:1.35;margin-bottom:10px;overflow-wrap:anywhere}
+.warehouse-snapshot-metric{padding:8px 9px;border-radius:8px;background:#f0f3f5;margin-top:6px}
+.warehouse-snapshot-metric span{display:block;color:#74808a;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.warehouse-snapshot-metric b{display:block;margin-top:3px;font-size:19px;font-variant-numeric:tabular-nums}
+.warehouse-snapshot-metric.available{background:#edf5ef}
+.warehouse-snapshot-metric.available b{color:#267647}
+.warehouse-snapshot-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #e4e9ec}
+.snapshot-meta{font-size:11px;color:#75818a}
+.warehouse-snapshot-text{width:100%;margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.ledger-adjustments-panel{margin-top:18px;padding-top:14px;border-top:1px solid #e4e9ec}
+.ledger-adjustments-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.ledger-adjustments-title h3{margin:0;font-size:13px;color:#26333d}
+.ledger-adjustments-title span{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#7a8790}
+.ledger-adjustments-list{display:grid;gap:7px}
+.ledger-adjustment-row{display:grid;grid-template-columns:minmax(110px,1.1fr) minmax(80px,.65fr) minmax(100px,1.3fr);gap:10px;align-items:start;border:1px solid #dce2e6;background:#fbfcfc;border-radius:9px;padding:10px 11px}
+.ledger-adjustment-row strong{display:block;font-size:11px;overflow-wrap:anywhere}
+.ledger-adjustment-row small{display:block;color:#77848d;font-size:9px;margin-bottom:3px}
+.ledger-adjustment-row p{margin:5px 0 0;font-size:10px;color:#53616b;overflow-wrap:anywhere}
+.ledger-adjustment-quantity{font-size:13px!important;font-weight:900!important;font-variant-numeric:tabular-nums}
+.ledger-adjustment-quantity.positive{color:#267647!important}.ledger-adjustment-quantity.negative{color:#a13e3e!important}
+@media(max-width:1000px){.warehouse-snapshot-preview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.warehouse-snapshot-preview{grid-template-columns:1fr}.ledger-adjustment-row{grid-template-columns:1fr 1fr}.ledger-adjustment-row .adjustment-reason{grid-column:1/-1}.warehouse-snapshot-actions{align-items:flex-start}.warehouse-snapshot-actions .output-actions{width:100%}.warehouse-snapshot-actions .output-actions button{flex:1}}

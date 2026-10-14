@@ -215,3 +215,19 @@ select:focus,input[type="search"]:focus{border-color:#93c5fd;box-shadow:0 0 0 3p
 /* Exact-timestamp mixed delivery refinements */
 .group-window{line-height:1.35}
 .receipt-table th:first-child,.receipt-table td:first-child{min-width:110px}
+
+
+/* Client ledger normalisations (shown separately from physical deliveries) */
+.ledger-normalisations-section{margin-top:26px}
+.normalisation-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.normalisation-section-head h2{margin:3px 0 0}
+.normalisation-section-note{font-size:11px;line-height:1.5;color:#697783;margin:6px 0 12px}
+.normalisation-groups{display:grid;gap:9px}
+.normalisation-card{display:grid;grid-template-columns:minmax(125px,.9fr) minmax(125px,.95fr) minmax(140px,1.7fr);gap:12px;border:1px solid #d8e1e8;border-radius:12px;background:#fff;padding:13px 14px}
+.normalisation-card strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.normalisation-card small{display:block;color:#7b8893;font-size:9px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;margin-bottom:4px}
+.normalisation-card p{margin:5px 0 0;color:#586774;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+.normalisation-delta{font-size:15px!important;font-weight:900!important;font-variant-numeric:tabular-nums}
+.normalisation-delta.positive{color:#247647!important}.normalisation-delta.negative{color:#a13e3e!important}
+.normalisation-balance{color:#253746!important;font-size:11px!important;font-weight:800!important}
+@media(max-width:700px){.normalisation-card{grid-template-columns:1fr 1fr}.normalisation-card .normalisation-reason{grid-column:1/-1}}

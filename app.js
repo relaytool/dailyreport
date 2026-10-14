@@ -10,6 +10,9 @@
     idTokenPayload: null,
     inventory: [],
     transactions: [],
+    availability: [],
+    adjustments: [],
+    warehouseSnapshot: null,
     routines: [],
     scheduleTracking: [],
     notableTracking: [],
@@ -58,6 +61,10 @@
     $("reportDate")?.addEventListener("change", handleContextChange);
     $("shiftSelect")?.addEventListener("change", handleContextChange);
     $("generateBtn")?.addEventListener("click", generateReport);
+    $("generateWarehouseSnapshotBtn")?.addEventListener("click", prepareWarehouseSnapshot);
+    $("copyWarehouseSnapshotBtn")?.addEventListener("click", copyWarehouseSnapshot);
+    $("downloadWarehouseSnapshotBtn")?.addEventListener("click", downloadWarehouseSnapshotPdf);
+    $("downloadWarehouseSnapshotTxtBtn")?.addEventListener("click", downloadWarehouseSnapshotText);
     $("copySummaryBtn")?.addEventListener("click", copySummary);
     $("downloadSummaryBtn")?.addEventListener("click", downloadSummary);
     $("saveAnnotationsBtn")?.addEventListener("click", () => saveAnnotations(true));
@@ -247,14 +254,18 @@
     setSyncStatus("Syncing live Sheets data…");
     try {
       const ledgerId = CONFIG.INVENTORY_LEDGER_SHEET_ID;
-      const [inventoryRows, transactionRows, routineRows] = await Promise.all([
+      const [inventoryRows, transactionRows, routineRows, availabilityRows, adjustmentRows] = await Promise.all([
         getValues(ledgerId, CONFIG.INVENTORY_SHEET_NAME),
         getValues(ledgerId, CONFIG.TRANSACTIONS_SHEET_NAME),
-        getValues(ledgerId, CONFIG.ROUTINE_SHEET_NAME)
+        getValues(ledgerId, CONFIG.ROUTINE_SHEET_NAME),
+        getOptionalValues(ledgerId, CONFIG.ASSET_AVAILABILITY_SHEET_NAME),
+        getOptionalValues(ledgerId, CONFIG.CLIENT_LEDGER_ADJUSTMENTS_SHEET_NAME)
       ]);
 
       state.inventory = parseInventory(inventoryRows);
       state.transactions = parseTransactions(transactionRows);
+      state.availability = parseAvailability(availabilityRows);
+      state.adjustments = parseClientLedgerAdjustments(adjustmentRows);
       state.routines = typeof FM_ROUTINE_ALERTS !== "undefined"
         ? FM_ROUTINE_ALERTS.parseRoutineRows(routineRows)
         : parseRoutinesFallback(routineRows);
@@ -263,7 +274,8 @@
       state.dataReady = true;
       state.assets = uniqueAssets([
         ...state.inventory.map(x => x.asset),
-        ...state.transactions.map(x => x.asset)
+        ...state.transactions.map(x => x.asset),
+        ...state.adjustments.map(x => x.asset)
       ]);
 
       buildInventoryForm(state.assets);
@@ -295,6 +307,8 @@
       const inventoryRows = readSheet(CONFIG.INVENTORY_SHEET_NAME);
       const transactionRows = readSheet(CONFIG.TRANSACTIONS_SHEET_NAME);
       const routineRows = readSheet(CONFIG.ROUTINE_SHEET_NAME);
+      const availabilityRows = readSheet(CONFIG.ASSET_AVAILABILITY_SHEET_NAME);
+      const adjustmentRows = readSheet(CONFIG.CLIENT_LEDGER_ADJUSTMENTS_SHEET_NAME);
       if (!inventoryRows.length || !transactionRows.length) {
         throw new Error("The ledger needs Asset Inventory and Asset Transactions sheets.");
       }
@@ -302,13 +316,16 @@
       state.idTokenPayload = null;
       state.inventory = parseInventory(inventoryRows);
       state.transactions = parseTransactions(transactionRows);
+      state.availability = parseAvailability(availabilityRows);
+      state.adjustments = parseClientLedgerAdjustments(adjustmentRows);
       state.routines = typeof FM_ROUTINE_ALERTS !== "undefined"
         ? FM_ROUTINE_ALERTS.parseRoutineRows(routineRows)
         : parseRoutinesFallback(routineRows);
       loadLocalAnnotations();
       state.assets = uniqueAssets([
         ...state.inventory.map(x => x.asset),
-        ...state.transactions.map(x => x.asset)
+        ...state.transactions.map(x => x.asset),
+        ...state.adjustments.map(x => x.asset)
       ]);
       state.sourceMode = "upload";
       state.dataReady = true;
@@ -334,7 +351,9 @@
     if (!state.dataReady) return;
     applyInventoryForShift();
     renderInventorySummaryPreview();
+    renderWarehouseSnapshotPreview();
     renderClientMovementPreview();
+    renderLedgerAdjustmentsPreview();
     renderDiscardedAssetsTodayPreview();
     renderScheduledMovements();
     renderNotableTransactions();
@@ -805,7 +824,7 @@
     }
     box.innerHTML = data.map(c => `<div class="client-preview-card">
       <div class="client-preview-head"><div><span class="client-label">Client</span><strong>${escapeHtml(c.client)}</strong></div></div>
-      <div class="client-movement-head"><span>Asset</span><span>In</span><span>Out</span><span>Today</span><span>All-time</span></div>
+      <div class="client-movement-head"><span>Asset</span><span>In</span><span>Out</span><span>Period net</span><span>All-time</span></div>
       <div class="client-movement-list">${c.types.map(t => `<div class="client-movement-row"><span>${escapeHtml(t.asset)}</span><b class="movement-in">${formatQty(t.received)}</b><b class="movement-out">${formatQty(t.sent)}</b><b class="with-client ${t.withClient >= 0 ? "positive" : "negative"}">${t.withClient >= 0 ? "+" : ""}${formatQty(t.withClient)}</b><b class="with-client ${t.allTimeWithClient >= 0 ? "positive" : "negative"}">${t.allTimeWithClient >= 0 ? "+" : ""}${formatQty(t.allTimeWithClient)}</b></div>`).join("")}</div>
     </div>`).join("");
   }
@@ -845,7 +864,7 @@
       box.innerHTML = `<div class="empty-report">${isEndOfDayReport() ? "No IN or OUT transactions recorded for this 24-hour Day + Night period." : "No IN or OUT transactions recorded for this shift."}</div>`;
       return;
     }
-    box.innerHTML = data.map((c, clientIndex) => `<div class="client-report-card" data-client-key="${escapeAttr(String(clientIndex) + "::" + hashString(c.client))}"><div class="client-report-head"><div><span>Client</span><h3>${escapeHtml(c.client)}</h3><a class="report-client-link" href="#" data-report-client-link="${escapeAttr(String(clientIndex) + "::" + hashString(c.client))}">See transactions →</a></div></div><div class="client-movement-head"><span>Asset</span><span>In</span><span>Out</span><span>Today</span><span>All-time</span></div><div class="client-movement-list">${c.types.map(t => `<div class="client-movement-row"><span>${escapeHtml(t.asset)}</span><b class="movement-in">${formatQty(t.received)}</b><b class="movement-out">${formatQty(t.sent)}</b><b class="with-client ${t.withClient >= 0 ? "positive" : "negative"}">${t.withClient >= 0 ? "+" : ""}${formatQty(t.withClient)}</b><b class="with-client ${t.allTimeWithClient >= 0 ? "positive" : "negative"}">${t.allTimeWithClient >= 0 ? "+" : ""}${formatQty(t.allTimeWithClient)}</b></div>`).join("")}</div></div>`).join("");
+    box.innerHTML = data.map((c, clientIndex) => `<div class="client-report-card" data-client-key="${escapeAttr(String(clientIndex) + "::" + hashString(c.client))}"><div class="client-report-head"><div><span>Client</span><h3>${escapeHtml(c.client)}</h3><a class="report-client-link" href="#" data-report-client-link="${escapeAttr(String(clientIndex) + "::" + hashString(c.client))}">See transactions →</a></div></div><div class="client-movement-head"><span>Asset</span><span>In</span><span>Out</span><span>Period net</span><span>All-time</span></div><div class="client-movement-list">${c.types.map(t => `<div class="client-movement-row"><span>${escapeHtml(t.asset)}</span><b class="movement-in">${formatQty(t.received)}</b><b class="movement-out">${formatQty(t.sent)}</b><b class="with-client ${t.withClient >= 0 ? "positive" : "negative"}">${t.withClient >= 0 ? "+" : ""}${formatQty(t.withClient)}</b><b class="with-client ${t.allTimeWithClient >= 0 ? "positive" : "negative"}">${t.allTimeWithClient >= 0 ? "+" : ""}${formatQty(t.allTimeWithClient)}</b></div>`).join("")}</div></div>`).join("");
   }
 
   function renderReportScheduledMovements() {
@@ -908,7 +927,7 @@
     $("rInventoryHeading").textContent = eod ? "Daily Asset Inventory" : "Shift Inventory Snapshot";
     $("rInventorySubtitle").textContent = eod ? "Full 24-hour movement and closing stock position across Day + Night shifts" : "Movement and stock position by asset type";
     $("rClientHeading").textContent = eod ? "Client Movements • Day + Night" : "Client Movement";
-    $("rClientSubtitle").textContent = eod ? "Sent, received and balances across the full Day + Night reporting period" : "Sent, received, today's net and all-time assets held with each client";
+    $("rClientSubtitle").textContent = eod ? "Sent, received and balances across the full Day + Night reporting period" : "Period movements, normalisations and all-time client balance";
     $("rScheduledSubtitle").textContent = eod ? "Routine expectations versus actual completion across Day + Night shifts" : "Routine expectations versus actual completion";
     $("rSignoffLabel").textContent = eod ? "End-of-Day Sign-Off" : "End-of-Shift Sign-Off";
     const status = $("overallStatus").value;
@@ -916,6 +935,7 @@
     $("rStatus").className = `status-pill ${status === "Critical" ? "critical" : status === "Attention Required" ? "attention" : ""}`;
     renderReportInventorySummary();
     renderReportClientMovement(shiftRows());
+    renderReportLedgerAdjustments();
     renderReportScheduledMovements();
     renderReportDiscardedAssets();
     $("rReceivedNotes").textContent = textValue("receivedNotes");
@@ -948,8 +968,10 @@
       const clientPageLinks = drawPdfClientMovementPages(pdf, clients);
       pdf.addPage("a4", "portrait");
       drawPdfDetailPage(pdf);
+      if (selectedClientAdjustments().length) drawPdfAdjustmentPages(pdf);
 
-      // Ledger pages start after the three opening report sections. Keep the
+      // Ledger pages start after the opening report sections and any dedicated
+      // normalisation appendix. Page links are calculated from the live page map. Keep the
       // first link target for each client for the card on Client Movements.
       const pageByClientKey = new Map();
       for (const client of clients) {
@@ -1240,6 +1262,9 @@
     movementRows.forEach(r => {
       if (r.client) clientTxCounts.set(r.client, (clientTxCounts.get(r.client) || 0) + 1);
     });
+    selectedClientAdjustments().forEach(r => {
+      if (r.client) clientTxCounts.set(r.client, (clientTxCounts.get(r.client) || 0) + 1);
+    });
 
     let slot = 0;
     let rowBottom = y;
@@ -1266,7 +1291,7 @@
       pdf.text(`${cardData.types.length} asset type${cardData.types.length === 1 ? "" : "s"}`, x + 9, cy + 25);
       pdf.text(`${clientTxCounts.get(client.client) || 0} transaction${(clientTxCounts.get(client.client) || 0) === 1 ? "" : "s"}`, x + cardW - 9, cy + 25, { align: "right" });
 
-      const cols = ["Asset", "IN", "OUT", "DATE", "ALL-TIME"];
+      const cols = ["Asset", "IN", "OUT", "PERIOD NET", "ALL-TIME"];
       const colX = [x + 9, x + cardW - 152, x + cardW - 116, x + cardW - 77, x + cardW - 9];
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(5.6);
@@ -1470,6 +1495,32 @@
     pdf.text(`Overall EOD status: ${pdfSafeText($("eodStatus").value)}`, margin + contentW - 10, footerY + 23, { align: "right" });
   }
 
+  function drawPdfAdjustmentPages(pdf) {
+    const adjustments = selectedClientAdjustments().slice().sort((a, b) => compareTimestamp(a.timestamp, b.timestamp));
+    const pageRows = 22;
+    const chunks = [];
+    for (let i = 0; i < adjustments.length; i += pageRows) chunks.push(adjustments.slice(i, i + pageRows));
+    const pageW = pdf.internal.pageSize.getWidth();
+    const margin = 30;
+    const contentW = pageW - margin * 2;
+    chunks.forEach((chunk, index) => {
+      pdf.addPage("a4", "portrait");
+      let y = drawPdfPageChrome(pdf, "CLIENT LEDGER NORMALISATIONS", `${formatDate($("reportDate").value)}  |  ${shiftInfo().windowText}`, `Normalisations ${index + 1} of ${chunks.length}`);
+      y += 12;
+      y = drawPdfSectionHeading(pdf, "Balance Corrections", "These are ledger-only adjustments and do not change warehouse inventory", margin, y, contentW);
+      const tableRows = chunk.map(row => [
+        `${formatDate(localDateKey(row.timestamp))} ${formatTime(row.timestamp)}`,
+        row.client,
+        row.asset,
+        signedQty(row.quantity),
+        row.previousBalance === null || row.previousBalance === undefined ? "-" : signedQty(row.previousBalance),
+        row.targetBalance === null || row.targetBalance === undefined ? "-" : signedQty(row.targetBalance),
+        `${row.comment || "No reason recorded"}${row.user ? ` · ${row.user}` : ""}`
+      ]);
+      drawPdfDataTable(pdf, ["Date / Time", "Client", "Asset", "Adjustment", "Previous", "Corrected", "Reason / Entered By"], tableRows, margin, y, [64, 74, 63, 56, 61, 61, contentW - 379], { rowHeight: 28, headerHeight: 25, fontSize: 6.5 });
+    });
+  }
+
   function drawPdfDataTable(pdf, headers, rows, x, y, widths, options = {}) {
     const baseRowHeight = options.rowHeight || 21;
     const headerHeight = options.headerHeight || 22;
@@ -1553,42 +1604,61 @@
   }
 
   function getClientLedgerRows(clientName) {
-    const selected = shiftRows()
-      .filter(r => r.client && sameName(r.client, clientName) && ["SENT", "RECEIVED"].includes(r.movement) && r.asset && r.quantity > 0)
+    const standardRows = shiftRows()
+      .filter(r => r.client && sameName(r.client, clientName) && ["SENT", "RECEIVED"].includes(r.movement) && r.asset && r.quantity > 0);
+    const selectedAdjustments = selectedClientAdjustments()
+      .filter(r => sameName(r.client, clientName) && r.asset)
+      .map(r => ({ ...r, rowNumber: 1000000 + (Number(r.rowNumber) || 0), _isNormalisation: true }));
+    const selected = [...standardRows, ...selectedAdjustments]
       .sort((a, b) => compareTimestamp(a.timestamp, b.timestamp) || (Number(a.rowNumber) || 0) - (Number(b.rowNumber) || 0));
     if (!selected.length) return [];
 
     const dailyTotals = new Map();
+    const applyDaily = (timestamp, asset, delta) => {
+      const date = localDateKey(timestamp);
+      if (!date || !asset) return;
+      const key = `${date}::${normalize(asset)}`;
+      dailyTotals.set(key, (dailyTotals.get(key) || 0) + delta);
+    };
     state.transactions.forEach(r => {
       if (!r.client || !sameName(r.client, clientName) || !r.asset || !["SENT", "RECEIVED"].includes(r.movement)) return;
-      const date = localDateKey(r.timestamp);
-      if (!date) return;
-      const key = `${date}::${normalize(r.asset)}`;
-      dailyTotals.set(key, (dailyTotals.get(key) || 0) + (r.movement === "SENT" ? r.quantity : -r.quantity));
+      applyDaily(r.timestamp, r.asset, r.movement === "SENT" ? r.quantity : -r.quantity);
+    });
+    state.adjustments.forEach(r => {
+      if (!r.client || !sameName(r.client, clientName) || !r.asset) return;
+      applyDaily(r.timestamp, r.asset, numberAtValue(r.quantity));
     });
 
     const running = new Map();
-    const allTransactions = state.transactions
-      .filter(r => r.client && sameName(r.client, clientName) && r.asset && ["SENT", "RECEIVED"].includes(r.movement))
-      .sort((a, b) => compareTimestamp(a.timestamp, b.timestamp) || (Number(a.rowNumber) || 0) - (Number(b.rowNumber) || 0));
+    const allTransactions = [
+      ...state.transactions.filter(r => r.client && sameName(r.client, clientName) && r.asset && ["SENT", "RECEIVED"].includes(r.movement)),
+      ...state.adjustments.filter(r => r.client && sameName(r.client, clientName) && r.asset).map(r => ({ ...r, _isNormalisation: true, rowNumber: 1000000 + (Number(r.rowNumber) || 0) }))
+    ].sort((a, b) => compareTimestamp(a.timestamp, b.timestamp) || (Number(a.rowNumber) || 0) - (Number(b.rowNumber) || 0));
     const runningByRow = new Map();
     allTransactions.forEach(r => {
       const key = normalize(r.asset);
       const current = running.get(key) || 0;
-      const next = current + (r.movement === "SENT" ? r.quantity : -r.quantity);
+      const delta = r._isNormalisation ? numberAtValue(r.quantity) : (r.movement === "SENT" ? r.quantity : -r.quantity);
+      const next = current + delta;
       running.set(key, next);
       runningByRow.set(transactionKey(r), next);
     });
 
     return selected.map(r => {
       const date = localDateKey(r.timestamp);
+      const isNormalisation = Boolean(r._isNormalisation);
       const dateDifference = dailyTotals.get(`${date}::${normalize(r.asset)}`) || 0;
+      const comment = isNormalisation
+        ? `LEDGER NORMALISATION (${signedQty(r.quantity)}) — ${r.comment || "No reason recorded"}`
+        : r.comment;
       return {
         ...r,
         date,
         time: formatTimeWithSeconds(r.timestamp),
-        sent: r.movement === "SENT" ? r.quantity : 0,
-        received: r.movement === "RECEIVED" ? r.quantity : 0,
+        sent: !isNormalisation && r.movement === "SENT" ? r.quantity : 0,
+        received: !isNormalisation && r.movement === "RECEIVED" ? r.quantity : 0,
+        adjustment: isNormalisation ? numberAtValue(r.quantity) : 0,
+        comment,
         differenceForDate: dateDifference,
         allTimeDifference: runningByRow.get(transactionKey(r)) ?? 0
       };
@@ -1819,8 +1889,8 @@
     });
 
     const totals = allRows.reduce((acc, r) => {
-      acc.sent += r.sent; acc.received += r.received; acc.diff += r.sent - r.received; return acc;
-    }, { sent: 0, received: 0, diff: 0 });
+      acc.sent += r.sent; acc.received += r.received; acc.adjustment += numberAtValue(r.adjustment); acc.diff += r.sent - r.received + numberAtValue(r.adjustment); return acc;
+    }, { sent: 0, received: 0, adjustment: 0, diff: 0 });
     const totalY = Math.min(rowY + 8, pageH - 62);
     pdf.setFillColor(241, 244, 245);
     pdf.setDrawColor(220, 226, 230);
@@ -1830,9 +1900,10 @@
     pdf.setTextColor(83, 95, 103);
     pdf.text("PERIOD TOTALS", tableX + 8, totalY + 13);
     pdf.text(`Sent: ${formatQty(totals.sent)}`, tableX + 125, totalY + 13);
-    pdf.text(`Received: ${formatQty(totals.received)}`, tableX + 222, totalY + 13);
-    pdf.text(`Difference: ${signedQty(totals.diff)}`, tableX + 335, totalY + 13);
-    pdf.text(`Transactions: ${allRows.length}`, tableX + tableW - 92, totalY + 13);
+    pdf.text(`Received: ${formatQty(totals.received)}`, tableX + 205, totalY + 13);
+    pdf.text(`Adjustments: ${signedQty(totals.adjustment)}`, tableX + 300, totalY + 13);
+    pdf.text(`Net: ${signedQty(totals.diff)}`, tableX + 420, totalY + 13);
+    pdf.text(`Rows: ${allRows.length}`, tableX + tableW - 55, totalY + 13);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(5.8);
     pdf.setTextColor(125, 137, 145);
@@ -2001,6 +2072,18 @@
         });
       });
     } else lines.push("• No client movements recorded.");
+    lines.push("");
+
+    lines.push("🧾 CLIENT LEDGER NORMALISATIONS");
+    const corrections = selectedClientAdjustments();
+    if (corrections.length) {
+      corrections.forEach(item => {
+        const balanceText = item.targetBalance !== null && item.targetBalance !== undefined
+          ? ` | Balance ${signedQty(item.previousBalance)} → ${signedQty(item.targetBalance)}` : "";
+        lines.push(`• ${formatTime(item.timestamp)} — ${item.client} — ${item.asset}: adjustment ${signedQty(item.quantity)}${balanceText} | Reason: ${item.comment || "No reason recorded"}`);
+      });
+      lines.push("• These corrections change client ledger balances only; warehouse stock is unchanged.");
+    } else lines.push("• No ledger normalisations recorded during this period.");
     lines.push("");
 
     lines.push("📅 SCHEDULED MOVEMENTS");
@@ -2250,6 +2333,13 @@
     return data.values || [];
   }
 
+  // Newer asset dashboards add these sheets. A missing optional tab must not
+  // prevent an older workbook from being used for ordinary shift reporting.
+  async function getOptionalValues(spreadsheetId, sheetName) {
+    if (!sheetName) return [];
+    try { return await getValues(spreadsheetId, sheetName); }
+    catch (error) { console.warn(`Optional sheet not available: ${sheetName}`, error?.message || error); return []; }
+  }
 
   function parseInventory(rows) {
     if (!rows?.length) return [];
@@ -2328,20 +2418,24 @@
     const { received, sent } = movementData(rows);
     const receivedMap = aggregateByClient(received);
     const sentMap = aggregateByClient(sent);
+    const correctionMap = aggregateByClient(selectedClientAdjustments());
     const allTime = allTimeClientBalances();
-    const names = new Set([...receivedMap.keys(), ...sentMap.keys()]);
+    const names = new Set([...receivedMap.keys(), ...sentMap.keys(), ...correctionMap.keys()]);
     return [...names].sort((a, b) => a.localeCompare(b)).map(client => {
       const r = receivedMap.get(client) || new Map();
       const s = sentMap.get(client) || new Map();
+      const corrections = correctionMap.get(client) || new Map();
       const t = allTime.get(client) || new Map();
-      const assets = new Set([...r.keys(), ...s.keys()]);
+      const assets = new Set([...r.keys(), ...s.keys(), ...corrections.keys()]);
       return {
         client,
         types: [...assets].sort((a, b) => a.localeCompare(b)).map(asset => ({
           asset,
           received: r.get(asset) || 0,
           sent: s.get(asset) || 0,
-          withClient: (s.get(asset) || 0) - (r.get(asset) || 0),
+          adjustment: corrections.get(asset) || 0,
+          // Period net includes any ledger correction recorded during the selected period.
+          withClient: (s.get(asset) || 0) - (r.get(asset) || 0) + (corrections.get(asset) || 0),
           allTimeWithClient: t.get(asset) || 0
         }))
       };
@@ -2350,17 +2444,260 @@
 
   function allTimeClientBalances() {
     const balances = new Map();
+    const apply = (client, asset, delta) => {
+      if (!client || !asset || /hsc london\s*\(self\)/i.test(client)) return;
+      if (!balances.has(client)) balances.set(client, new Map());
+      const map = balances.get(client);
+      map.set(asset, (map.get(asset) || 0) + delta);
+    };
     state.transactions.forEach(r => {
       const client = r.client || "Unknown Client";
       const asset = r.asset || "Unknown Asset";
-      if (!client || !asset || /hsc london\s*\(self\)/i.test(client)) return;
       if (!["SENT", "RECEIVED", "RETURNED", "COLLECTED"].includes(r.movement)) return;
-      if (!balances.has(client)) balances.set(client, new Map());
-      const map = balances.get(client);
-      const current = map.get(asset) || 0;
-      map.set(asset, r.movement === "SENT" ? current + r.quantity : current - r.quantity);
+      apply(client, asset, r.movement === "SENT" ? r.quantity : -r.quantity);
     });
+    // Normalisations are signed deltas to the client-held balance; they never
+    // touch the physical warehouse inventory or count as a sent/received move.
+    state.adjustments.forEach(row => apply(row.client, row.asset, numberAtValue(row.quantity)));
     return balances;
+  }
+
+  function selectedClientAdjustments() {
+    return (state.adjustments || []).filter(row => row.timestamp && isInSelectedShift(row.timestamp));
+  }
+
+  function renderLedgerAdjustmentsPreview() {
+    const box = $("ledgerAdjustmentsPreview");
+    if (!box) return;
+    if (!state.dataReady) {
+      box.innerHTML = emptyPanel("Connect or upload the ledger to load balance corrections.");
+      return;
+    }
+    const rows = selectedClientAdjustments().slice().sort((a, b) => compareTimestamp(a.timestamp, b.timestamp));
+    if (!rows.length) {
+      box.innerHTML = `<div class="empty-panel">No ledger normalisations were recorded during this period.</div>`;
+      return;
+    }
+    box.innerHTML = rows.map(row => {
+      const qtyClass = Number(row.quantity) >= 0 ? "positive" : "negative";
+      const balance = row.previousBalance !== null && row.previousBalance !== undefined && row.targetBalance !== null && row.targetBalance !== undefined
+        ? `${signedQty(row.previousBalance)} → ${signedQty(row.targetBalance)}` : "Balance correction";
+      return `<article class="ledger-adjustment-row">
+        <div><small>${escapeHtml(formatDateTimeFromTimestamp(row.timestamp))}</small><strong>${escapeHtml(row.client)}</strong><p>${escapeHtml(row.asset)}</p></div>
+        <div><small>Adjustment · ${escapeHtml(balance)}</small><strong class="ledger-adjustment-quantity ${qtyClass}">${escapeHtml(signedQty(row.quantity))}</strong><p>${escapeHtml(row.user || "")}</p></div>
+        <div class="adjustment-reason"><small>Reason</small><strong>${escapeHtml(row.comment || "No reason recorded")}</strong></div>
+      </article>`;
+    }).join("");
+  }
+
+  function renderReportLedgerAdjustments() {
+    const box = $("rLedgerAdjustments");
+    if (!box) return;
+    const rows = selectedClientAdjustments().slice().sort((a, b) => compareTimestamp(a.timestamp, b.timestamp));
+    if (!rows.length) {
+      box.innerHTML = `<div class="empty-report">No client ledger normalisations were recorded during this period.</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="ledger-adjustments-list">${rows.map(row => `<article class="ledger-adjustment-row"><div><small>${escapeHtml(formatDateTimeFromTimestamp(row.timestamp))}</small><strong>${escapeHtml(row.client)}</strong><p>${escapeHtml(row.asset)}</p></div><div><small>Correction</small><strong class="ledger-adjustment-quantity ${Number(row.quantity) >= 0 ? "positive" : "negative"}">${escapeHtml(signedQty(row.quantity))}</strong><p>${escapeHtml(row.previousBalance !== null && row.targetBalance !== null ? `${signedQty(row.previousBalance)} → ${signedQty(row.targetBalance)}` : "")}</p></div><div class="adjustment-reason"><small>Reason</small><strong>${escapeHtml(row.comment || "No reason recorded")}</strong></div></article>`).join("")}</div>`;
+  }
+
+  function warehouseSnapshotData() {
+    const date = currentLondonDateKey();
+    const available = new Map();
+    (state.availability || []).forEach(row => {
+      if (row.date !== date || row.availableCount === null || !Number.isFinite(Number(row.availableCount))) return;
+      available.set(normalize(row.asset), Number(row.availableCount));
+    });
+    return [...state.inventory].map(item => {
+      const raw = available.has(normalize(item.asset)) ? available.get(normalize(item.asset)) : null;
+      const availableCount = raw === null ? null : Math.max(0, Math.min(Number(item.balance) || 0, raw));
+      return { asset: item.asset, totalBalance: Number(item.balance) || 0, availableCount };
+    }).sort((a, b) => a.asset.localeCompare(b.asset));
+  }
+
+  function renderWarehouseSnapshotPreview() {
+    const box = $("warehouseSnapshotPreview");
+    if (!box) return;
+    if (!state.dataReady) {
+      box.innerHTML = emptyPanel("Connect or upload the ledger to view warehouse stock.");
+      return;
+    }
+    const rows = warehouseSnapshotData();
+    if (!rows.length) {
+      box.innerHTML = emptyPanel("No warehouse inventory was found.");
+      return;
+    }
+    box.innerHTML = rows.map(row => `<article class="warehouse-snapshot-item"><strong>${escapeHtml(row.asset)}</strong>${row.availableCount !== null ? `<div class="warehouse-snapshot-metric available"><span>Available to send</span><b>${formatQty(row.availableCount)}</b></div>` : ""}<div class="warehouse-snapshot-metric"><span>Total on hand</span><b>${formatQty(row.totalBalance)}</b></div></article>`).join("");
+    const action = $("generateWarehouseSnapshotBtn");
+    if (action) action.disabled = false;
+  }
+
+  async function prepareWarehouseSnapshot() {
+    if (!state.dataReady) { showToast("Load the ledger first"); return; }
+    const button = $("generateWarehouseSnapshotBtn");
+    if (button) { button.disabled = true; button.textContent = "Preparing snapshot…"; }
+    try {
+      const date = currentLondonDateKey();
+      const generatedAt = new Date();
+      const rows = warehouseSnapshotData();
+      const lines = [
+        "WAREHOUSE AVAILABILITY SNAPSHOT",
+        `Snapshot date: ${formatDate(date)}`,
+        `Generated: ${formatSnapshotTimestamp(generatedAt)}`,
+        ""
+      ];
+      rows.forEach(row => {
+        lines.push(row.availableCount !== null
+          ? `• ${row.asset}: ${formatQty(row.availableCount)} available to send | ${formatQty(row.totalBalance)} total on hand`
+          : `• ${row.asset}: ${formatQty(row.totalBalance)} total on hand`);
+      });
+      lines.push("", "Available-to-send quantities are the counts explicitly entered for today. Total on-hand stock is shown separately.");
+      const text = lines.join("\n");
+      const blob = buildWarehouseSnapshotPdf(rows, date, generatedAt);
+      state.warehouseSnapshot = { date, generatedAt, rows, text, blob };
+      $("warehouseSnapshotText").value = text;
+      $("warehouseSnapshotText").classList.remove("hidden");
+      $("warehouseSnapshotActions").classList.remove("hidden");
+      $("warehouseSnapshotMeta").textContent = `Prepared ${formatSnapshotTimestamp(generatedAt)} · ${rows.length} asset types`;
+      showToast("Warehouse snapshot prepared");
+    } catch (error) {
+      console.error(error);
+      showToast(error?.message || "Could not prepare the warehouse snapshot.");
+    } finally {
+      if (button) { button.disabled = false; button.textContent = "Prepare snapshot report"; }
+    }
+  }
+
+  function buildWarehouseSnapshotPdf(rows, date, generatedAt) {
+    const jsPdfCtor = window.jspdf?.jsPDF || window.jsPDF;
+    if (typeof jsPdfCtor !== "function") throw new Error("PDF tool is still loading. Please try again.");
+    const pdf = new jsPdfCtor({ orientation: "portrait", unit: "pt", format: "a4", compress: true });
+    const w = pdf.internal.pageSize.getWidth();
+    const margin = 30;
+    const contentW = w - margin * 2;
+    const chunkSize = 23;
+    const chunks = [];
+    for (let i = 0; i < rows.length; i += chunkSize) chunks.push(rows.slice(i, i + chunkSize));
+    if (!chunks.length) chunks.push([]);
+    chunks.forEach((chunk, pageIndex) => {
+      if (pageIndex > 0) pdf.addPage("a4", "portrait");
+      let y = drawPdfPageChrome(pdf, "QUICK WAREHOUSE SNAPSHOT", `${formatDate(date)}  |  Generated ${formatSnapshotTimestamp(generatedAt)}`, `Page ${pageIndex + 1} - Warehouse stock`);
+      y += 10;
+      y = drawPdfSectionHeading(pdf, "Current Warehouse Stock", "Explicit available-to-send quantities are shown separately from total stock", margin, y, contentW);
+      const tableRows = chunk.length ? chunk.map(row => [row.asset, row.availableCount === null ? "" : formatQty(row.availableCount), formatQty(row.totalBalance)]) : [["No inventory found", "", ""]];
+      y = drawPdfDataTable(pdf, ["Asset Type", "Available to Send", "Total On Hand"], tableRows, margin, y, [contentW * .48, contentW * .23, contentW * .29], { rowHeight: 23, headerHeight: 25, fontSize: 8 });
+      const noteY = Math.min(y + 20, pdf.internal.pageSize.getHeight() - 36);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7);
+      pdf.setTextColor(105, 118, 128);
+      pdf.text("A blank Available to Send cell means no separate availability count was entered for that asset today.", margin, noteY);
+      pdf.text("Total on-hand stock remains the inventory balance; this report does not change stock counts.", margin, noteY + 11);
+    });
+    const blob = pdf.output("blob");
+    if (!(blob instanceof Blob) || blob.size < 500) throw new Error("The warehouse snapshot PDF could not be created.");
+    return blob;
+  }
+
+  async function copyWarehouseSnapshot() {
+    const snapshot = state.warehouseSnapshot;
+    if (!snapshot) { showToast("Prepare the snapshot first"); return; }
+    try { await navigator.clipboard.writeText(snapshot.text); }
+    catch (_) { const field = $("warehouseSnapshotText"); field.classList.remove("hidden"); field.focus(); field.select(); document.execCommand("copy"); }
+    showToast("Warehouse snapshot copied");
+  }
+
+  function downloadWarehouseSnapshotPdf() {
+    if (!state.warehouseSnapshot?.blob) { showToast("Prepare the snapshot first"); return; }
+    downloadBlob(state.warehouseSnapshot.blob, `warehouse-snapshot-${state.warehouseSnapshot.date}.pdf`, "application/pdf");
+  }
+
+  function downloadWarehouseSnapshotText() {
+    if (!state.warehouseSnapshot?.text) { showToast("Prepare the snapshot first"); return; }
+    const blob = new Blob([state.warehouseSnapshot.text], { type: "text/plain;charset=utf-8" });
+    downloadBlob(blob, `warehouse-snapshot-${state.warehouseSnapshot.date}.txt`, "text/plain");
+  }
+
+  function formatSnapshotTimestamp(value) {
+    return new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(value);
+  }
+
+  function currentLondonDateKey() {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  }
+
+  function dateKeyFromSheetValue(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+    }
+    if (typeof value === "number" && value > 0 && value < 100000) {
+      return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);
+    }
+    const raw = String(value ?? "").trim();
+    const iso = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (iso) return iso[1];
+    const uk = raw.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+    if (uk) return `${uk[3]}-${uk[2].padStart(2, "0")}-${uk[1].padStart(2, "0")}`;
+    const serial = Number(raw);
+    if (Number.isFinite(serial) && serial > 20000 && serial < 80000) return new Date(Date.UTC(1899, 11, 30) + serial * 86400000).toISOString().slice(0, 10);
+    return "";
+  }
+
+  function parseAvailability(rows) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const h = rows[0].map(normalizeHeader);
+    const dateIdx = findHeader(h, ["date", "day"]);
+    const assetIdx = findHeader(h, ["asset", "asset type", "item"]);
+    const countIdx = findHeader(h, ["available count", "available", "available to send", "quantity"]);
+    const userIdx = findHeader(h, ["updated by", "user", "entered by"]);
+    const updatedIdx = findHeader(h, ["updated at", "timestamp", "last updated"]);
+    if ([dateIdx, assetIdx, countIdx].some(index => index < 0)) return [];
+    return rows.slice(1).map((row, index) => ({
+      rowNumber: index + 2,
+      date: dateKeyFromSheetValue(row[dateIdx]),
+      asset: valueAt(row, assetIdx),
+      availableCount: row[countIdx] === "" || row[countIdx] == null ? null : numberAtValue(row[countIdx]),
+      updatedBy: valueAt(row, userIdx),
+      updatedAt: valueAt(row, updatedIdx)
+    })).filter(item => item.date && item.asset);
+  }
+
+  function parseClientLedgerAdjustments(rows) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const h = rows[0].map(normalizeHeader);
+    const idx = {
+      timestamp: findHeader(h, ["timestamp", "date", "datetime"]),
+      client: findHeader(h, ["client", "client name"]),
+      movement: findHeader(h, ["movement", "type", "direction"]),
+      asset: findHeader(h, ["asset", "asset name", "item"]),
+      quantity: findHeader(h, ["quantity", "qty", "delta"]),
+      user: findHeader(h, ["user", "entered by", "email"]),
+      comment: findHeader(h, ["comment", "comments", "notes", "reason"]),
+      target: findHeader(h, ["target balance"]),
+      previous: findHeader(h, ["previous balance", "old balance"]),
+      id: findHeader(h, ["adjustment id", "id"])
+    };
+    if ([idx.timestamp, idx.client, idx.asset].some(index => index < 0)) return [];
+    return rows.slice(1).map((row, offset) => {
+      if (String(idx.movement >= 0 ? row[idx.movement] : "").trim().toUpperCase() !== "NORMALISATION") return null;
+      const previousBalance = idx.previous >= 0 && row[idx.previous] !== "" ? numberAtValue(row[idx.previous]) : null;
+      const targetBalance = idx.target >= 0 && row[idx.target] !== "" ? numberAtValue(row[idx.target]) : null;
+      let quantity = idx.quantity >= 0 && row[idx.quantity] !== "" ? numberAtValue(row[idx.quantity]) : null;
+      if (quantity === null && previousBalance !== null && targetBalance !== null) quantity = targetBalance - previousBalance;
+      return {
+        rowNumber: offset + 2,
+        timestamp: row[idx.timestamp] ?? "",
+        client: valueAt(row, idx.client),
+        movement: "NORMALISATION",
+        asset: valueAt(row, idx.asset),
+        quantity: quantity ?? 0,
+        user: valueAt(row, idx.user),
+        comment: valueAt(row, idx.comment),
+        image: "",
+        previousBalance,
+        targetBalance,
+        adjustmentId: valueAt(row, idx.id)
+      };
+    }).filter(row => row && row.client && row.asset && row.timestamp);
   }
 
   function assetTotals(rows) {
