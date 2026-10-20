@@ -1,247 +1,204 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EasyCanvas — Print Label Designer</title>
-<meta name="description" content="A simple canvas for designing and printing notices, labels, QR codes, barcodes and warning signs.">
-<style>
-:root{--ink:#182230;--muted:#667085;--line:#e4e7ec;--panel:#fff;--soft:#f7f8fb;--accent:#6558d3;--accent-dark:#5145b5;--accent-light:#f0eeff;--green:#13815c;--shadow:0 12px 35px rgba(16,24,40,.10)}
-*{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#f4f6fa;font-size:14px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #c7c2ff;outline-offset:1px}
-.app{height:100%;min-height:100%;display:flex;flex-direction:column}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 22px;flex-shrink:0}.brand{display:flex;align-items:center;gap:11px;min-width:220px}.brand-mark{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#8073f0,#5847cd);display:grid;place-items:center;color:#fff;box-shadow:0 5px 12px #6558d333}.brand-mark svg{width:24px;height:24px}.brand-name{font-weight:800;font-size:19px;letter-spacing:-.5px}.brand-sub{color:var(--muted);font-size:11px;margin-top:2px}.topbar-divider{height:30px;width:1px;background:var(--line)}.page-controls{display:flex;align-items:center;gap:8px}.top-label{font-size:12px;color:var(--muted);font-weight:650;margin-right:2px}.select-shell{position:relative}.top-select{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 30px 9px 11px;color:var(--ink);font-weight:600;min-width:124px}.orientation{display:flex;padding:3px;border:1px solid var(--line);border-radius:10px;background:#f9fafb;gap:3px}.orientation button{border:0;border-radius:7px;padding:7px 10px;color:var(--muted);background:transparent;font-size:12px;font-weight:650}.orientation button.active{background:white;color:var(--accent);box-shadow:0 1px 3px #10182818}.top-spacer{flex:1}.save-state{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px;margin-right:7px}.save-dot{width:7px;height:7px;background:#12b76a;border-radius:100%}.action{border:1px solid var(--line);background:#fff;color:#344054;border-radius:9px;padding:9px 12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650;white-space:nowrap}.action:hover{background:#f9fafb}.action svg{width:16px;height:16px}.action.primary{background:var(--accent);color:white;border-color:var(--accent)}.action.primary:hover{background:var(--accent-dark)}.action.small{font-size:12px;padding:7px 9px}.app-body{display:grid;grid-template-columns:248px minmax(320px,1fr) 280px;min-height:0;flex:1;height:calc(100vh - 72px)}.sidebar{background:white;min-height:0;overflow:auto;border-right:1px solid var(--line);padding:18px 14px 22px}.rightbar{background:white;min-height:0;overflow:auto;border-left:1px solid var(--line);padding:20px 16px}.panel-heading{display:flex;align-items:center;justify-content:space-between;margin:0 4px 13px}.panel-heading h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#667085;margin:0;font-weight:800}.panel-hint{font-size:11px;color:#98a2b3}.section{padding:0 4px 18px;margin-bottom:17px;border-bottom:1px solid #eff1f5}.section:last-child{border-bottom:0}.section-title{font-size:12px;color:#475467;font-weight:750;margin:0 0 10px}.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tool-button{border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 8px 10px;min-height:76px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;color:#344054;font-weight:650;font-size:12px;transition:border-color .14s,background .14s,transform .14s}.tool-button:hover{border-color:#b9b2ff;background:#faf9ff;transform:translateY(-1px)}.tool-icon{width:32px;height:32px;border-radius:9px;background:#f1efff;color:#6558d3;display:grid;place-items:center}.tool-icon svg{width:19px;height:19px}.tool-icon img{max-width:100%;max-height:100%}.symbol-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}.symbol-button{border:1px solid var(--line);background:#fff;border-radius:9px;min-height:45px;min-width:0;padding:6px 5px;display:flex;align-items:center;gap:5px;text-align:left;font-size:10px;font-weight:650;color:#475467}.symbol-button:hover{border-color:#b9b2ff;background:#faf9ff}.symbol-button span:last-child{min-width:0;white-space:normal;overflow-wrap:normal;word-break:normal;line-height:1.12;font-size:9px}.symbol-mini{width:24px;height:24px;display:grid;place-items:center;flex:0 0 24px}.symbol-mini svg{width:23px;height:23px}.tip-box{background:#f8f7ff;border:1px solid #e7e3ff;border-radius:10px;padding:11px 12px;color:#5d568f;font-size:11px;line-height:1.55}.tip-box strong{color:#494093}.workspace{min-width:0;min-height:0;display:flex;flex-direction:column;background:#eef1f6}.workspace-bar{height:52px;border-bottom:1px solid #e1e5ed;display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0;background:#f8f9fc}.crumb{font-size:12px;color:#667085}.crumb strong{color:#344054}.workspace-spacer{flex:1}.zoom-note{font-size:11px;color:#667085}.stage-scroller{flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:25px 24px 38px}.stage-holder{position:relative;flex-shrink:0}.paper{position:absolute;top:0;left:0;background:#fff;overflow:hidden;box-shadow:0 8px 25px rgba(16,24,40,.16),0 1px 3px rgba(16,24,40,.08);transform-origin:top left;border:1px solid #e6e8ef;touch-action:none}.empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#98a2b3;pointer-events:none;padding:15%;font-size:12px;line-height:1.65}.empty-note .empty-inner{max-width:230px}.empty-note svg{width:42px;height:42px;color:#cbc7f5;margin-bottom:12px}.design-item{position:absolute;display:flex;align-items:stretch;justify-content:stretch;overflow:visible;cursor:move;user-select:none;touch-action:none}.design-item.selected{outline:1px solid #7669eb;outline-offset:0}.design-item.selected:after{content:"";position:absolute;inset:-1px;border:1px solid #7669eb;pointer-events:none}.design-item .resize-handle{display:none;position:absolute;width:10px;height:10px;border-radius:3px;background:#fff;border:2px solid #7669eb;z-index:4}.design-item.selected .resize-handle{display:block}.resize-handle.nw{left:-5px;top:-5px;cursor:nwse-resize}.resize-handle.ne{right:-5px;top:-5px;cursor:nesw-resize}.resize-handle.sw{left:-5px;bottom:-5px;cursor:nesw-resize}.resize-handle.se{right:-5px;bottom:-5px;cursor:nwse-resize}.item-text{width:100%;height:100%;display:flex;align-items:center;white-space:pre-wrap;overflow:hidden;overflow-wrap:anywhere;line-height:1.12;word-break:break-word;padding:1px}.item-symbol{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3%;overflow:hidden;text-align:center}.item-symbol svg{width:70%;height:70%;min-height:0;flex:1}.item-symbol .symbol-label{width:100%;line-height:1.05;white-space:pre-wrap;overflow-wrap:anywhere;font-weight:800;text-transform:uppercase}.code-output{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent}.code-output canvas,.code-output img{display:block;width:100%!important;height:100%!important;object-fit:contain}.code-output svg{width:100%;height:100%;display:block}.item-image{width:100%;height:100%;display:block;object-fit:contain;pointer-events:none}.selection-tip{height:30px;flex-shrink:0;padding:6px 18px;color:#8a94a6;font-size:11px;border-top:1px solid #e1e5ed;background:#f8f9fc}.right-title{font-size:16px;font-weight:800;letter-spacing:-.35px;margin:0 0 4px}.right-subtitle{font-size:12px;color:#667085;line-height:1.45;margin:0 0 21px}.empty-properties{border:1px dashed #d0d5dd;border-radius:12px;padding:20px 13px;text-align:center;color:#98a2b3;font-size:12px;line-height:1.6}.empty-properties svg{width:27px;height:27px;color:#c3c8d3;margin-bottom:8px}.field{display:block;margin:0 0 13px}.field-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;color:#475467;font-size:11px;font-weight:750}.field-label .subtle{color:#98a2b3;font-weight:500}.field input[type=text],.field input[type=number],.field textarea,.field select{width:100%;border:1px solid #d0d5dd;border-radius:8px;background:#fff;padding:9px 10px;color:#344054;min-height:36px}.field textarea{resize:vertical;min-height:68px;line-height:1.4}.field input[type=number]{max-width:100%}.field select{padding-right:25px}.inline-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.inline-fields.three{grid-template-columns:1fr 1fr 1fr;gap:7px}.color-row{display:flex;align-items:center;gap:9px}.color-row input[type=color]{width:34px;height:32px;padding:2px;border:1px solid #d0d5dd;border-radius:7px;background:#fff}.color-row span{font-size:11px;color:#667085}.checks{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.checkline{display:flex;align-items:center;gap:6px;font-size:11px;color:#475467;font-weight:600}.checkline input{accent-color:var(--accent)}.right-divider{height:1px;background:#eff1f5;margin:17px 0}.property-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.property-actions .action{font-size:11px;padding:9px 7px}.statusline{font-size:11px;color:#98a2b3;line-height:1.5;margin-top:14px}.align-toolbar{display:flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--line);border-radius:9px;background:#fff}.align-toolbar button{border:0;border-radius:6px;background:transparent;color:#475467;padding:5px 7px;min-width:27px;font-size:15px;font-weight:750;line-height:1}.align-toolbar button:hover{background:#f0eeff;color:var(--accent)}.align-toolbar button:active{background:#e7e3ff}.shape-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.shape-button{border:1px solid var(--line);background:#fff;border-radius:9px;min-height:54px;padding:7px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#475467;font-size:10px;font-weight:650}.shape-button:hover{border-color:#b9b2ff;background:#faf9ff}.shape-button svg{width:24px;height:24px;color:#6558d3}.counter-note{font-size:11px;line-height:1.45;color:#667085;background:#f8f7ff;border-radius:8px;padding:9px;margin-bottom:12px}.print-pages{display:none}.print-page{position:relative!important;left:0!important;top:0!important;margin:0!important;transform:none!important;box-shadow:none!important;border:0!important;overflow:hidden!important}.item-shape{display:block;width:100%;height:100%;overflow:visible}.item-counter{width:100%;height:100%;display:flex;align-items:center;justify-content:center;white-space:pre-wrap;overflow:hidden;overflow-wrap:anywhere;line-height:1.12;word-break:break-word;padding:1px}.selected-group-note{font-size:10px;color:#6558d3;margin-top:-6px;margin-bottom:10px}
-@media(max-width:1000px){.workspace-bar{height:auto;min-height:52px;flex-wrap:wrap;padding:8px 12px}.align-toolbar{order:5}.workspace-spacer{min-width:12px}}
-@media print{.print-pages{display:none!important}body.has-print-copies .stage-holder{display:none!important}body.has-print-copies .print-pages{display:block!important}.print-page{display:block!important;break-after:page!important;page-break-after:always!important}.print-page:last-child{break-after:auto!important;page-break-after:auto!important}.print-page .design-item{outline:none!important;cursor:default!important}.print-page .design-item.selected,.print-page .design-item.selected:after{outline:none!important;border:0!important}.print-page .resize-handle{display:none!important}}
-.modal-shade{position:fixed;inset:0;background:#10182870;display:none;align-items:center;justify-content:center;z-index:20;padding:20px}.modal-shade.open{display:flex}.modal{width:min(430px,100%);background:white;border-radius:16px;box-shadow:var(--shadow);padding:22px}.modal h3{margin:0 0 7px;font-size:18px}.modal p{margin:0 0 16px;font-size:12px;color:var(--muted);line-height:1.5}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,18px);opacity:0;pointer-events:none;background:#182230;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;box-shadow:var(--shadow);z-index:30;transition:opacity .18s,transform .18s;max-width:min(90vw,500px);text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.hidden{display:none!important}.footer-mobile{display:none}
-@media(max-width:1100px){.app-body{grid-template-columns:215px minmax(300px,1fr) 250px}.topbar{padding:0 14px;gap:12px}.brand{min-width:175px}.brand-sub{display:none}.save-state{display:none}.top-select{min-width:105px}.rightbar{padding:18px 13px}.sidebar{padding:16px 10px}.stage-scroller{padding:20px 14px 30px}}
-@media(max-width:820px){.app{height:auto;min-height:100%}.topbar{height:auto;min-height:66px;padding:10px 12px;flex-wrap:wrap;gap:10px}.brand{min-width:0;flex:1}.brand-name{font-size:17px}.topbar-divider{display:none}.page-controls{order:3;width:100%;justify-content:flex-start}.top-spacer{flex:0}.action{padding:8px 10px;font-size:12px}.app-body{height:auto;min-height:calc(100vh - 105px);grid-template-columns:1fr;grid-template-rows:auto minmax(55vh,1fr) auto}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:12px;overflow:visible}.panel-heading{margin-bottom:9px}.section{padding-bottom:12px;margin-bottom:12px}.section-title{margin-bottom:8px}.tool-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.tool-button{min-height:68px;padding:8px 4px;font-size:10px}.tool-icon{width:28px;height:28px}.symbol-list{grid-template-columns:repeat(3,minmax(0,1fr))}.symbol-button{font-size:10px;gap:4px;padding:5px}.symbol-mini{width:24px;height:24px;flex-basis:24px}.symbol-mini svg{width:23px;height:23px}.tip-box{display:none}.workspace{min-height:55vh}.workspace-bar{height:43px;padding:0 12px}.stage-scroller{min-height:46vh;padding:16px 10px 20px}.selection-tip{padding-left:12px}.rightbar{border-left:0;border-top:1px solid var(--line);padding:17px 16px 22px;overflow:visible}.rightbar .right-subtitle{margin-bottom:14px}.rightbar .empty-properties{max-width:480px}.property-actions{max-width:480px}.right-title{font-size:15px}.footer-mobile{display:block;color:#98a2b3;font-size:10px;margin-top:11px}.save-state{display:none}}
-@media(max-width:430px){.brand-mark{width:36px;height:36px}.topbar>.action{padding:8px 9px}.topbar>.action .label{display:none}.page-controls{gap:6px}.top-label{display:none}.top-select{min-width:110px;max-width:130px;padding-right:22px}.orientation button{padding:7px 8px}.tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.tool-button span:last-child{max-width:100%;line-height:1.15}.symbol-list{grid-template-columns:repeat(2,minmax(0,1fr))}.stage-scroller{padding-left:8px;padding-right:8px}.zoom-note{font-size:10px}}
-@media print{
-  @page{margin:0}
-  html,body{width:auto!important;height:auto!important;margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important}
-  body{display:block!important}.app{display:block!important;min-height:0!important}.topbar,.sidebar,.rightbar,.workspace-bar,.selection-tip,.toast,.modal-shade{display:none!important}.app-body{display:block!important;height:auto!important;min-height:0!important}.workspace{display:block!important;min-height:0!important;background:#fff!important}.stage-scroller{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;min-height:0!important}.stage-holder{display:block!important;position:static!important;width:auto!important;height:auto!important;overflow:visible!important}.paper{position:relative!important;top:0!important;left:0!important;margin:0!important;transform:none!important;box-shadow:none!important;border:0!important;overflow:hidden!important;page-break-after:avoid!important;break-after:avoid!important}.design-item{outline:none!important;cursor:default!important}.design-item.selected,.design-item.selected:after{outline:none!important;border:0!important}.resize-handle,.empty-note{display:none!important}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1822">
+  <title id="pageTitle">Asset Compliance — End of Shift Report</title>
+  <link rel="stylesheet" href="style.css?v=20261014-warehouse-snapshot1">
+  <script src="https://accounts.google.com/gsi/client" async defer onload="window.dispatchEvent(new Event('fm-google-loaded'))"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
-<div class="app">
   <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h8"/><path d="m15.5 10.5 2 2-2 2" opacity=".75"/></svg></div>
-      <div><div class="brand-name">EasyCanvas</div><div class="brand-sub">Make it clear. Print it easy.</div></div>
+    <div class="brand-copy">
+      <div class="eyebrow">ASSET COMPLIANCE</div>
+      <h1 id="formPageTitle">End-of-Shift Report</h1>
+      <p id="formPageSubtitle">Live from the Assets Inventory Ledger · built for quick shift handover.</p>
     </div>
-    <div class="topbar-divider"></div>
-    <div class="page-controls">
-      <span class="top-label">PAPER</span>
-      <select id="paperSize" class="top-select" aria-label="Paper size"><option value="a4">A4 · 210 × 297 mm</option><option value="4x6">4 × 6 in · label</option></select>
-      <div class="orientation" aria-label="Orientation"><button id="portraitBtn" class="active" type="button">▯ Portrait</button><button id="landscapeBtn" type="button">▱ Landscape</button></div>
+    <div class="header-actions">
+      <button type="button" class="btn secondary" id="refreshBtn">↻ Refresh</button>
+      <button type="button" class="btn primary" id="generateBtn">Generate report + Slack summary</button>
     </div>
-    <div class="top-spacer"></div>
-    <div class="save-state" title="Your design is kept in this browser tab until you save it"><span class="save-dot"></span><span id="saveState">Ready to design</span></div>
-    <button class="action" id="openBtn" type="button" title="Open a saved EasyCanvas design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><path d="M3 10h18"/></svg><span class="label">Open</span></button>
-    <button class="action" id="saveBtn" type="button" title="Save the design as a file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h12l3 3v15H4V3z"/><path d="M8 3v6h8V3M8 21v-8h8v8"/></svg><span class="label">Save</span></button>
-    <button class="action primary" id="printBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-3"/><rect x="7" y="14" width="10" height="7" rx="1"/><path d="M17 11h1"/></svg><span class="label">Print</span></button>
   </header>
-  <div class="app-body">
-    <aside class="sidebar">
-      <div class="panel-heading"><h2>Elements</h2><span class="panel-hint">Click or drag</span></div>
-      <section class="section">
-        <h3 class="section-title">Add to your page</h3>
-        <div class="tool-grid">
-          <button class="tool-button" id="addText" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6V4h16v2M12 4v16M8 20h8"/></svg></span><span>Text</span></button>
-          <button class="tool-button" id="addQR" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 19v2"/></svg></span><span>QR code</span></button>
-          <button class="tool-button" id="addBarcode" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4v16M6 4v16M9 4v16M13 4v16M15 4v16M19 4v16M21 4v16"/><path d="M2 2h20M2 22h20" opacity=".4"/></svg></span><span>Barcode</span></button>
-          <button class="tool-button" id="addImage" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><span>Image</span></button>
-          <button class="tool-button" id="addCounter" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h3v6M14 9h3M14 12h3M14 15h3"/></svg></span><span>Counter</span></button>
-        </div>
-        <input id="imageInput" type="file" accept="image/*" class="hidden">
-        <input id="designInput" type="file" accept="application/json,.json" class="hidden">
-      </section>
-      <section class="section">
-        <h3 class="section-title">Notice & safety symbols</h3>
-        <div class="symbol-list" id="symbolList"></div>
-        <div class="footer-mobile">Tip: drag a symbol onto your page, or tap to add it.</div>
-      </section>
-      <section class="section">
-        <h3 class="section-title">Shapes</h3>
-        <div class="shape-grid" id="shapeList">
-          <button class="shape-button" type="button" data-shape="rectangle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="1"/></svg><span>Rectangle</span></button>
-          <button class="shape-button" type="button" data-shape="rounded"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="5"/></svg><span>Rounded</span></button>
-          <button class="shape-button" type="button" data-shape="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg><span>Circle</span></button>
-          <button class="shape-button" type="button" data-shape="triangle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 22 21H2z"/></svg><span>Triangle</span></button>
-          <button class="shape-button" type="button" data-shape="diamond"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 22 12 12 22 2 12z"/></svg><span>Diamond</span></button>
-          <button class="shape-button" type="button" data-shape="star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3 7h7l-5.5 4.5 2 8L12 17l-6.5 4.5 2-8L2 9h7z"/></svg><span>Star</span></button>
-          <button class="shape-button" type="button" data-shape="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h16m-6-6 6 6-6 6"/></svg><span>Arrow</span></button>
-          <button class="shape-button" type="button" data-shape="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/></svg><span>Line</span></button>
-          <button class="shape-button" type="button" data-shape="hexagon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 3 10 0 5 9-5 9H7l-5-9z"/></svg><span>Hexagon</span></button>
-        </div>
-      </section>
-      <section class="section">
-        <h3 class="section-title">Quick notice templates</h3>
-        <div class="tool-grid">
-          <button class="tool-button" id="quickWarning" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 22 21H2z"/><path d="M12 9v5M12 17h.01"/></svg></span><span>Warning label</span></button>
-          <button class="tool-button" id="quickDontTouch" type="button"><span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8M9 14V9a1 1 0 0 1 2 0v3-5a1 1 0 0 1 2 0v5-3a1 1 0 0 1 2 0v5"/></svg></span><span>Do not touch</span></button>
-        </div>
-      </section>
-      <div class="tip-box"><strong>Quick tip</strong><br>Click an item to edit it. Drag to move it, use the corner dots to resize, or press Delete to remove it. You can also paste a copied image with <b>⌘V / Ctrl+V</b>.</div>
-    </aside>
 
-    <main class="workspace">
-      <div class="workspace-bar"><span class="crumb">My design</span><span class="crumb">/</span><span class="crumb"><strong id="workspacePaperName">A4 portrait</strong></span><span class="workspace-spacer"></span><span class="zoom-note" id="zoomNote">Page preview</span><div class="align-toolbar" aria-label="Align selected item to page" title="Align selected item to the page"><button type="button" data-page-align="left" aria-label="Align left to page" title="Align left">⇤</button><button type="button" data-page-align="center" aria-label="Center horizontally" title="Center horizontally">↔</button><button type="button" data-page-align="right" aria-label="Align right to page" title="Align right">⇥</button><button type="button" data-page-align="top" aria-label="Align top to page" title="Align top">⇡</button><button type="button" data-page-align="middle" aria-label="Center vertically" title="Center vertically">↕</button><button type="button" data-page-align="bottom" aria-label="Align bottom to page" title="Align bottom">⇣</button></div><button class="action small" id="clearPageBtn" type="button">Clear page</button></div>
-      <div class="stage-scroller" id="stageScroller"><div class="stage-holder" id="stageHolder"><div class="paper" id="paper" aria-label="Printable page"><div class="empty-note" id="emptyNote"><div class="empty-inner"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="5" width="26" height="38" rx="3"/><path d="M17 15h14M17 21h14M17 27h8"/><path d="m29 34 3 3 6-7"/></svg><div><b>Your page is ready.</b><br>Add text, a QR code, barcode or warning symbol to get started.</div></div></div></div></div><div class="print-pages" id="printPages" aria-hidden="true"></div></div>
-      <div class="selection-tip">Drag items to position them · Print at <span id="printSizeText">A4 (210 × 297 mm)</span></div>
-    </main>
+  <section class="connection-card" id="connectionCard">
+    <div class="connection-copy">
+      <h2>Get started</h2>
+      <div class="connection-actions-inline">
+        <button type="button" class="btn primary" id="googleConnectBtn">Sign in with Google</button>
+        <label class="btn secondary upload-ledger-btn">Upload ledger
+          <input id="xlsxFile" type="file" accept=".xlsx,.xls" hidden>
+        </label>
+      </div>
+      <p id="authStatus" class="auth-status"></p>
+      <div class="connection-user hidden" id="connectedUserRow"><span>Account</span><strong id="connectedUser">Not connected</strong></div>
+    </div>
+    <div class="connection-actions">
+      <button type="button" class="btn ghost hidden" id="signOutBtn">Sign out</button>
+    </div>
+  </section>
 
-    <aside class="rightbar">
-      <h2 class="right-title">Edit item</h2><p class="right-subtitle">Select anything on your page to change its content, look and size.</p>
-      <div id="properties"><div class="empty-properties"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg><br>Nothing selected yet.<br>Tap an item on the page to edit it.</div></div>
-      <div class="statusline" id="helperStatus">Your page prints at its real paper size. Counter items print as a numbered run of pages (up to 500 at once). Choose “Actual size” or 100% in the print dialog.</div>
-    </aside>
+  <main id="appShell" class="hidden">
+    <div class="live-bar">
+      <div><span class="live-dot"></span><strong>Live Sheets data</strong><span id="syncStatus">Waiting to sync…</span></div>
+      <div class="live-actions"><span id="annotationStatus">All changes saved</span><button type="button" class="text-button" id="saveAnnotationsBtn">Save report edits</button></div>
+    </div>
+
+    <main class="form-shell">
+      <section class="card hero-card">
+        <div class="section-head">
+          <div><span class="section-number">01</span><div><span class="section-kicker">Report setup</span><h2 id="reportSetupTitle">Shift details</h2></div></div>
+        </div>
+        <div class="grid three">
+          <label>Report date<input id="reportDate" type="date"></label>
+          <label>Shift<select id="shiftSelect"><option value="day">Day shift · 07:00–19:00</option><option value="night">Night shift · 19:00–07:00</option><option value="24hr">24-hour period · 07:00–07:00 next day</option></select></label>
+          <label>Prepared by<input id="preparedBy" type="text" placeholder="Name"></label>
+        </div>
+        <div id="shiftWindow" class="shift-window"><strong>Day shift</strong><span>Loading…</span><small>Report date is the shift end date.</small></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div><span class="section-number">02</span><div><span class="section-kicker">Live inventory</span><h2 id="inventorySectionTitle">Shift inventory snapshot</h2></div></div>
+          <span class="calculated-note">Calculated from live Sheets</span>
+        </div>
+        <div id="inventorySummaryPreview" class="inventory-summary-preview"></div>
+        <div id="inventoryForm" class="inventory-form-calculation-cache" aria-hidden="true"></div>
+        <label class="status-field">Overall status<select id="overallStatus"><option>On Track</option><option>Attention Required</option><option>Critical</option></select></label>
+      </section>
+
+      <section class="card warehouse-snapshot-card">
+        <div class="section-head row-head">
+          <div><span class="section-kicker">Warehouse status</span><h2>Quick warehouse snapshot</h2></div>
+          <button type="button" class="btn primary" id="generateWarehouseSnapshotBtn">Prepare snapshot report</button>
+        </div>
+        <p class="form-hint">A current view of total warehouse stock and any available-to-send counts entered for today.</p>
+        <div id="warehouseSnapshotPreview" class="warehouse-snapshot-preview"><div class="empty-panel">Connect or upload the ledger to view warehouse stock.</div></div>
+        <div id="warehouseSnapshotActions" class="warehouse-snapshot-actions hidden">
+          <span id="warehouseSnapshotMeta" class="snapshot-meta"></span>
+          <div class="output-actions">
+            <button type="button" class="btn secondary" id="copyWarehouseSnapshotBtn">Copy summary</button>
+            <button type="button" class="btn secondary" id="downloadWarehouseSnapshotBtn">Download PDF</button>
+            <button type="button" class="btn secondary" id="downloadWarehouseSnapshotTxtBtn">Download TXT</button>
+          </div>
+        </div>
+        <textarea id="warehouseSnapshotText" class="warehouse-snapshot-text hidden" rows="8" readonly aria-label="Quick warehouse snapshot summary"></textarea>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">03</span><div><span class="section-kicker">Live movements</span><h2>Client movement</h2></div></div>
+          <span class="count-pill" id="transactionCount">0</span>
+        </div>
+        <p class="form-hint">All Sent and Received transactions in the selected period, with today’s and all-time client balances. For the 24-hour option this covers both the Day and Night shifts. Notable selections are saved locally on this device.</p>
+        <div id="clientMovementPreview" class="client-movement-preview"></div>
+        <div class="ledger-adjustments-panel">
+          <div class="ledger-adjustments-title"><h3>Ledger normalisations in this period</h3><span>Client balance only</span></div>
+          <div id="ledgerAdjustmentsPreview" class="ledger-adjustments-list"><div class="empty-panel">Connect or upload the ledger to load balance corrections.</div></div>
+        </div>
+        <div class="grid two notes-grid">
+          <label>Movement notes<textarea id="receivedNotes" rows="2" placeholder="Optional notes"></textarea></label>
+          <label>General notes<textarea id="sentNotes" rows="2" placeholder="Optional notes"></textarea></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">04</span><div><span class="section-kicker">Live schedule</span><h2>Scheduled movements</h2></div></div>
+          <span class="count-pill" id="routineCount">0</span>
+        </div>
+        <p class="form-hint">Pulled from <strong>Routine Outbounds</strong>. Mark each movement completed, enter what actually moved, and add a note.</p>
+        <div id="routineBody" class="routine-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">05</span><div><span class="section-kicker" id="reviewSectionKicker">Shift review</span><h2>Notable transactions</h2></div></div>
+          <span class="count-pill subtle">Select below</span>
+        </div>
+        <p class="form-hint">Every transaction from the selected reporting period is shown here. For the 24-hour option this includes both the Day and Night shifts.</p>
+        <div id="notableBody" class="transaction-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">06</span><div><span class="section-kicker">Exceptions</span><h2>Discarded assets</h2></div></div>
+        </div>
+        <p class="form-hint">Discarded movements are pulled from the live transaction sheet. Add a reason for the handover.</p>
+        <div id="discardedAssetsPreview" class="discarded-today-preview"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head row-head">
+          <div><span class="section-number">07</span><div><span class="section-kicker">Manual input</span><h2>Outstanding issues / risks</h2></div></div>
+          <button type="button" class="small-btn" id="addIssueBtn">+ Add issue</button>
+        </div>
+        <div id="issueRows" class="entry-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><span class="section-number">08</span><div><span class="section-kicker">Handover</span><h2>Plan for tomorrow</h2></div></div></div>
+        <textarea id="tomorrowPlan" rows="5" placeholder="Enter tomorrow's priorities, expected receipts, dispatches or actions…"></textarea>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><span class="section-number">09</span><div><span class="section-kicker">Sign-off</span><h2 id="signoffSectionTitle">End-of-shift sign-off</h2></div></div></div>
+        <div class="grid two">
+          <label>Date / time<input id="signoffDate" type="datetime-local"></label>
+          <label>Overall EOD status<select id="eodStatus"><option>Normal</option><option>Attention Required</option><option>Escalation Required</option></select></label>
+        </div>
+      </section>
+
+      <section class="output-grid hidden" id="outputCard">
+        <div class="card output-card">
+          <div class="section-head"><div><span class="section-kicker">PDF report</span><h2>Generated daily report</h2></div><button type="button" class="btn secondary" id="downloadPdfBtn">Download PDF again</button></div>
+          <div id="reportPreviewWrap" class="report-preview-wrap hidden"><img id="reportPreview" alt="First page of generated report"></div>
+          <p class="pdf-preview-note">The preview above is the first page. Client cards contain clickable links to their daily transaction ledgers in the PDF.</p>
+        </div>
+        <div class="card output-card">
+          <div class="section-head"><div><span class="section-kicker">Copy-ready</span><h2>Slack summary</h2><p class="summary-edit-hint">Edit the message below before copying. Your changes will stay until the report is regenerated.</p></div><span id="summaryMeta" class="summary-meta"></span></div>
+          <textarea id="slackSummary" class="slack-summary" spellcheck="false"></textarea>
+          <div class="output-actions"><button type="button" class="btn primary" id="copySummaryBtn">Copy summary</button><button type="button" class="btn secondary" id="downloadSummaryBtn">Download TXT</button></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="reportArea" class="report-area">
+    <div id="report" class="report">
+      <div class="report-header">
+        <div><div class="report-kicker" id="reportKicker">ASSET COMPLIANCE • END OF SHIFT</div><h1 id="reportTitle">End-of-Shift Asset Management &amp; Compliance Report</h1></div>
+        <div class="report-meta"><div><span>Date</span><strong id="rDate">—</strong></div><div><span>Report type</span><strong id="rReportType">—</strong></div><div><span>Coverage</span><strong id="rCoverage">—</strong></div><div><span>Period / Shift window</span><strong id="rShiftWindow">—</strong></div><div><span>Prepared by</span><strong id="rPrepared">—</strong></div></div>
+      </div>
+      <section class="report-section summary-section"><div class="report-section-title-row"><div><h2 id="rInventoryHeading">Shift Inventory Snapshot</h2><p id="rInventorySubtitle" class="section-subtitle">Movement and stock position by asset type</p></div><div class="status-pill" id="rStatus">On Track</div></div><div id="rInventorySummaryCards" class="inventory-summary-report-grid"></div></section>
+      <section class="report-section movement-section"><div class="report-section-title-row"><div><h2 id="rClientHeading">Client Movement</h2><p id="rClientSubtitle" class="section-subtitle">Sent, received, today's net and all-time assets held with each client</p></div></div><div id="rClientMovement" class="client-report-grid"></div><div class="notes-pair"><div class="note-box"><span>Movement notes</span><p id="rReceivedNotes">—</p></div><div class="note-box"><span>General notes</span><p id="rSentNotes">—</p></div></div></section>
+      <section class="report-section" id="rLedgerAdjustmentsSection"><div class="report-section-title-row"><div><h2>Client Ledger Normalisations</h2><p class="section-subtitle">Balance corrections recorded for this reporting period; warehouse stock is unaffected</p></div></div><div id="rLedgerAdjustments" class="ledger-adjustments-list"></div></section>
+      <section class="report-section"><div class="report-section-title-row"><div><h2>Scheduled Movements</h2><p id="rScheduledSubtitle" class="section-subtitle">Routine expectations versus actual completion</p></div></div><table><thead><tr><th>Client</th><th>Asset</th><th>Planned</th><th>Actual</th><th>Status</th><th>Notes</th></tr></thead><tbody id="rRoutineRows"></tbody></table></section>
+      <section class="report-section discarded-report-section"><div class="report-section-title-row"><div><h2>Discarded Assets</h2><p class="section-subtitle">Asset type, quantity discarded and reason</p></div></div><div id="rDiscardedAssetsToday" class="discarded-report-list"></div></section>
+      <section class="report-section"><h2>Outstanding Issues / Risks</h2><table><thead><tr><th>Priority</th><th>Issue</th><th>Asset / Client</th><th>Impact</th><th>Action</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="rIssueRows"></tbody></table></section>
+      <section class="report-section plan"><h2>Plan for Tomorrow</h2><p id="rTomorrow">—</p></section>
+      <footer class="report-footer"><div><span id="rSignoffLabel">End-of-Shift Sign-Off</span><strong id="rSignoff">—</strong></div><div><span>Overall EOD Status</span><strong id="rEodStatus">Normal</strong></div></footer>
+    </div>
   </div>
-</div>
-<div class="modal-shade" id="confirmShade"><div class="modal"><h3>Start a fresh page?</h3><p>This will clear the items on the current page. Save your design first if you may need it again.</p><div class="modal-actions"><button class="action" id="cancelClear" type="button">Cancel</button><button class="action primary" id="confirmClear" type="button">Clear page</button></div></div></div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onload="window.dispatchEvent(new Event('easycanvaslibsready'))"></script>
-<script async src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" onload="window.dispatchEvent(new Event('easycanvaslibsready'))"></script>
-<script>
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const paper=$('paper'),holder=$('stageHolder'),scroller=$('stageScroller');
-const SIZES={a4:{w:210,h:297,label:'A4',print:'210 × 297 mm'},'4x6':{w:101.6,h:152.4,label:'4 × 6 in',print:'4 × 6 inches'}};
-let sizeKey='a4',orientation='portrait',items=[],selectedId=null,nextId=1,drag=null,draggingPalette=false,toastTimer=null;
-const symbols={
- warning:{label:'WARNING',color:'#d92d20',svg:'<svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 4 96 82H4L50 4Z" fill="#fff" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M50 27v27" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="67" r="5" fill="currentColor"/></svg>'},
- 'no-touch':{label:'DO NOT TOUCH',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8"/><path d="M20 20 80 80" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><path d="M39 66V42a5 5 0 0 1 10 0v13-25a5 5 0 0 1 10 0v25-16a5 5 0 0 1 10 0v21c0 13-8 21-20 21H41c-7 0-12-4-16-10l-7-11a5 5 0 0 1 8-6l8 8" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- fragile:{label:'FRAGILE',color:'#344054',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M29 12h42v8L58 42v13l17 25c2 4-1 8-6 8H31c-5 0-8-4-6-8l17-25V42L29 20v-8Z" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="M36 67h28M50 42v19m-8-9 8 8 8-8" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- 'keep-dry':{label:'KEEP DRY',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 47a43 43 0 0 1 86 0H7Z" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="M50 47v34a8 8 0 0 0 16 0" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="m27 9 5-5m36 5-5-5" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>'},
- electric:{label:'DANGER · ELECTRIC',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 4 96 85H4L50 4Z" fill="#fff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="m56 25-22 34h16l-5 18 23-35H52l4-17Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'},
- biohazard:{label:'BIOHAZARD',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="9" fill="currentColor"/><circle cx="50" cy="29" r="14" stroke="currentColor" stroke-width="8"/><circle cx="32" cy="61" r="14" stroke="currentColor" stroke-width="8"/><circle cx="68" cy="61" r="14" stroke="currentColor" stroke-width="8"/><path d="M50 40v-6M43 58l-5 3m19-3 5 3" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="50" r="41" stroke="currentColor" stroke-width="3"/></svg>'},
- 'this-side-up':{label:'THIS SIDE UP',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23 78V25m0 0L10 39m13-14 13 14M77 78V25m0 0L64 39m13-14 13 14" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 88h84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>'},
- 'no-forklift':{label:'NO FORKLIFTS',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7"/><path d="M20 20 80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M28 61V39h22l8 13h12v18H28zM58 52V29h8v23M35 70a6 6 0 1 0 0 .1M61 70a6 6 0 1 0 0 .1" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- 'stack-limit':{label:'STACK LIMIT',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 48 50 29l35 19-35 19-35-19Z" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="M15 63 50 82l35-19M50 10v13m-8-5 8-8 8 8" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- 'no-hooks':{label:'USE NO HOOKS',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7"/><path d="M20 20 80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M38 26v20c0 10 7 14 15 14s12-6 12-13V36" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>'},
- flammable:{label:'FLAMMABLE',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M52 7c5 20-17 25-8 42 3-12 13-13 15-24 19 18 25 36 15 54-8 15-25 18-40 10C13 78 15 54 32 35c0 14 5 19 10 20C35 34 55 28 52 7Z" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/></svg>'},
- corrosive:{label:'CORROSIVE',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m19 23 27 10-6 14-27-10zM59 15l26 11-6 14-26-11z" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="m43 56 8 3m16-4 8 4M12 72h33l9 8H12zM59 72h28M70 63l-5 9m13-9-5 9" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- radiation:{label:'RADIATION',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="8" fill="currentColor"/><path d="M46 39 34 14a40 40 0 0 0-22 25l29 6M61 48l27-8a40 40 0 0 0-22-25L53 40M44 59 32 84a40 40 0 0 0 36 0L56 59" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="4"/></svg>'},
- firstaid:{label:'FIRST AID',color:'#039855',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="80" height="80" rx="9" stroke="currentColor" stroke-width="6"/><path d="M42 23h16v19h19v16H58v19H42V58H23V42h19z" fill="currentColor"/></svg>'},
- recycle:{label:'RECYCLE',color:'#039855',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m42 14 13-7 14 23-13 7M55 7l-7-1-12 20M20 41l-1 15 28 1V42m-28 14-6 3 12 20M67 45l13 3 3 26-26 1-1-14M80 48l10 14m-40 17-14 11-16-22 12-8" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- 'keep-frozen':{label:'KEEP FROZEN',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 8v84M14 29l72 42M14 71l72-42M38 20l12 12 12-12M38 80l12-12 12 12M15 44l16-3-3-16M85 56l-16 3 3 16M31 83l-3-16-16 3M69 17l3 16 16-3" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
- 'keep-away-heat':{label:'KEEP AWAY FROM HEAT',color:'#b54708',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 9c5 17-13 22-7 35 3-7 10-8 12-18 17 17 19 32 10 46-7 11-22 15-34 6-16-12-12-31 2-45 0 11 5 15 9 16C38 32 53 26 50 9Z" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="M10 82h80" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>'},
- 'no-open-flames':{label:'NO OPEN FLAMES',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7"/><path d="M20 20 80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M51 28c5 13-10 18-5 28 2-5 7-6 9-13 11 12 12 21 6 30-5 8-16 10-24 4-10-8-8-21 1-30 0 7 3 10 6 11-4-15 9-19 7-30Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg>'},
- information:{label:'INFORMATION',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7"/><circle cx="50" cy="29" r="5" fill="currentColor"/><path d="M50 45v27" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>'},
- stop:{label:'STOP',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M29 7h42l22 22v42L71 93H29L7 71V29z" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M28 50h44" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>'},
- 'hand-wash':{label:'WASH HANDS',color:'#175cd3',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 84V43a6 6 0 0 1 12 0v16-31a6 6 0 0 1 12 0v31-22a6 6 0 0 1 12 0v24-13a6 6 0 0 1 12 0v25c0 17-10 27-26 27H43c-10 0-17-5-22-14L10 67a6 6 0 0 1 10-6l11 12" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -7)"/><path d="M20 15c-3 5-5 8-5 11a5 5 0 0 0 10 0c0-3-2-6-5-11ZM75 11c-3 5-5 8-5 11a5 5 0 0 0 10 0c0-3-2-6-5-11Z" stroke="currentColor" stroke-width="4"/></svg>'},
- 'no-stacking':{label:'DO NOT STACK',color:'#d92d20',svg:'<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7"/><path d="M20 20 80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M21 50 50 34l29 16-29 16z" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
-};
-function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2600)}
-function setStatus(message){$('helperStatus').textContent=message}
-function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function getDimensions(){let s=SIZES[sizeKey];return orientation==='portrait'?{w:s.w,h:s.h}:{w:s.h,h:s.w}}
-function updatePaper(){const d=getDimensions();paper.style.width=d.w+'mm';paper.style.height=d.h+'mm';const measuredW=paper.offsetWidth||d.w*96/25.4;const measuredH=paper.offsetHeight||d.h*96/25.4;const availW=Math.max(100,scroller.clientWidth-24);const availH=Math.max(150,scroller.clientHeight-38);const scale=Math.min(1,availW/measuredW,availH/measuredH);paper.style.transform='scale('+scale+')';holder.style.width=(measuredW*scale)+'px';holder.style.height=(measuredH*scale)+'px';$('portraitBtn').classList.toggle('active',orientation==='portrait');$('landscapeBtn').classList.toggle('active',orientation==='landscape');$('workspacePaperName').textContent=SIZES[sizeKey].label+' '+orientation;$('printSizeText').textContent=SIZES[sizeKey].label+' ('+(orientation==='portrait'?SIZES[sizeKey].print:(sizeKey==='a4'?'297 × 210 mm':'6 × 4 inches'))+')';$('zoomNote').textContent='Preview '+Math.round(scale*100)+'%';let ps=sizeKey==='a4'?(orientation==='portrait'?'210mm 297mm':'297mm 210mm'):(orientation==='portrait'?'4in 6in':'6in 4in');let rule=document.getElementById('dynamicPageRule');if(!rule){rule=document.createElement('style');rule.id='dynamicPageRule';document.head.appendChild(rule)}rule.textContent='@media print { @page { size: '+ps+'; margin: 0; } }'}
-function symbolSVG(key){return symbols[key]?.svg||symbols.warning.svg}
-function createItem(type,opts={}){const item={id:nextId++,type,x:opts.x??25,y:opts.y??25,w:opts.w??40,h:opts.h??15,...opts};items.push(item);selectedId=item.id;renderAll();updateProperties();saveState();return item}
-function addText(text='Your text',x=15,y=15){createItem('text',{x,y,w:70,h:12,text,fontSize:24,fontFamily:'Arial, sans-serif',color:'#182230',bold:true,italic:false,align:'center',background:'transparent'})}
-function addQR(x=38,y=22){createItem('qr',{x,y,w:22,h:22,content:'Enter QR text or a URL',background:'#ffffff',padding:2})}
-function addBarcode(x=20,y=27){createItem('barcode',{x,y,w:58,h:17,content:'EASYCANVAS-123',showValue:true,color:'#182230',background:'#ffffff'})}
-function addCounter(x=15,y=38){createItem('counter',{x,y,w:70,h:18,start:1,end:10,increment:1,prefix:'',suffix:'',padding:0,fontSize:42,fontFamily:'Arial, sans-serif',color:'#182230',background:'transparent',bold:true,italic:false,align:'center'})}
-function addShape(shapeType='rectangle',x=25,y=25){createItem('shape',{x,y,w:22,h:22,shapeType,color:'#6558d3',fill:'#f0eeff',strokeWidth:3})}
-function formatCounter(it,value){const n=Number(value);const integerText=Number.isInteger(n)?String(n):String(Number(n.toFixed(8)));const negative=integerText.startsWith('-');const body=negative?integerText.slice(1):integerText;const padded=it.padding?body.padStart(Math.min(12,Math.max(0,Number(it.padding)||0)),'0'):body;return String(it.prefix||'')+(negative?'-':'')+padded+String(it.suffix||'')}
-function counterSequence(it){const start=Number(it.start),end=Number(it.end),step=Number(it.increment);if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(step)||step===0)return {error:'Enter valid start, end and non-zero increment values.'};if((end>start&&step<0)||(end<start&&step>0))return {error:'The increment must move from the start toward the end.'};const out=[];for(let n=start;step>0?n<=end+1e-9:n>=end-1e-9;n=Number((n+step).toFixed(8))){out.push(n);if(out.length>500)return {error:'Counter printing is limited to 500 pages at a time.'}}return {values:out}}
-function shapeMarkup(it){const common='fill="'+(it.shapeType==='line'||it.shapeType==='arrow'?'none':escapeHTML(it.fill||'transparent'))+'" stroke="'+escapeHTML(it.color||'#6558d3')+'" stroke-width="'+Math.max(1,Math.min(12,Number(it.strokeWidth)||3))+'" stroke-linecap="round" stroke-linejoin="round"';const paths={rectangle:'<rect x="7" y="7" width="86" height="86" '+common+'/>',rounded:'<rect x="7" y="7" width="86" height="86" rx="14" '+common+'/>',circle:'<circle cx="50" cy="50" r="43" '+common+'/>',triangle:'<path d="M50 6 95 92H5Z" '+common+'/>',diamond:'<path d="M50 5 95 50 50 95 5 50Z" '+common+'/>',star:'<path d="m50 4 13 29 32 3-24 21 7 32-28-17-28 17 7-32L5 36l32-3Z" '+common+'/>',arrow:'<path d="M7 40H68V18L95 50 68 82V60H7Z" '+common+'/>',line:'<path d="M6 50H94" '+common+'/>',hexagon:'<path d="M25 7H75L95 50 75 93H25L5 50Z" '+common+'/>',cross:'<path d="M36 5H64V36H95V64H64V95H36V64H5V36H36Z" '+common+'/>',octagon:'<path d="M29 5H71L95 29V71L71 95H29L5 71V29Z" '+common+'/>'};return '<svg class="item-shape" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'+(paths[it.shapeType]||paths.rectangle)+'</svg>'}
-function addSymbol(key,x=36,y=18){let s=symbols[key]||symbols.warning;createItem('symbol',{symbol:key,x,y,w:28,h:30,label:s.label,color:s.color,fontSize:11,background:'transparent',bold:true})}
-function addImageData(data,x=25,y=20){createItem('image',{x,y,w:36,h:27,src:data,fit:'contain',background:'transparent'})}
-function getSelected(){return items.find(it=>it.id===selectedId)||null}
-function applyBox(el,it){el.style.left=it.x+'%';el.style.top=it.y+'%';el.style.width=it.w+'%';el.style.height=it.h+'%';el.style.background=it.background&&it.background!=='transparent'?it.background:'transparent'}
-function renderVisual(el,it){const visual=el.querySelector('.visual');visual.innerHTML='';
- if(it.type==='text'||it.type==='counter'){const d=document.createElement('div');d.className=it.type==='counter'?'item-counter':'item-text';d.textContent=it.type==='counter'?formatCounter(it,Number(it.start)||0):(it.text??'');d.style.fontFamily=it.fontFamily||'Arial, sans-serif';d.style.fontSize=(Number(it.fontSize)||18)+'pt';d.style.color=it.color||'#182230';d.style.fontWeight=it.bold?'800':'400';d.style.fontStyle=it.italic?'italic':'normal';d.style.textAlign=it.align||'center';d.style.justifyContent=it.align==='left'?'flex-start':it.align==='right'?'flex-end':'center';d.style.alignItems=it.vAlign==='top'?'flex-start':it.vAlign==='bottom'?'flex-end':'center';d.style.background=it.background||'transparent';visual.appendChild(d)}
- else if(it.type==='shape'){visual.innerHTML=shapeMarkup(it)}
- else if(it.type==='symbol'){const wrap=document.createElement('div');wrap.className='item-symbol';wrap.style.color=it.color||'#d92d20';wrap.innerHTML=symbolSVG(it.symbol);let label=document.createElement('div');label.className='symbol-label';label.textContent=it.label??'';label.style.fontSize=(Number(it.fontSize)||11)+'pt';label.style.fontWeight=it.bold?'800':'500';label.style.color=it.color||'#d92d20';wrap.appendChild(label);visual.appendChild(wrap)}
- else if(it.type==='image'){const img=document.createElement('img');img.className='item-image';img.src=it.src||'';img.alt='Pasted image';img.style.objectFit=it.fit||'contain';visual.appendChild(img)}
- else if(it.type==='qr'){const output=document.createElement('div');output.className='code-output';visual.appendChild(output);if(window.QRCode){try{new QRCode(output,{text:it.content||' ',width:320,height:320,colorDark:it.color||'#000000',colorLight:it.background&&it.background!=='transparent'?it.background:'#ffffff',correctLevel:QRCode.CorrectLevel.M})}catch(e){output.textContent='Could not make QR code'}}else{output.innerHTML='<div style="font-size:9pt;text-align:center;padding:5px;color:#b42318">QR library needs internet<br>Reload when connected</div>'}}
- else if(it.type==='barcode'){const output=document.createElement('div');output.className='code-output';output.style.flexDirection='column';visual.appendChild(output);const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');output.appendChild(svg);if(window.JsBarcode){try{JsBarcode(svg,it.content||' ',{format:'CODE128',lineColor:it.color||'#182230',background:it.background&&it.background!=='transparent'?it.background:'#ffffff',width:1.5,height:38,displayValue:!!it.showValue,font:'Arial',fontSize:12,margin:3,valid:function(valid){if(!valid) output.textContent='Barcode data is not valid'}})}catch(e){output.textContent='Use letters and numbers for Code 128'}}else{output.textContent='Barcode library needs internet'} }
- }
-function renderAll(){paper.querySelectorAll('.design-item').forEach(n=>n.remove());for(const it of items){const el=document.createElement('div');el.className='design-item'+(it.id===selectedId?' selected':'');el.dataset.id=it.id;applyBox(el,it);const visual=document.createElement('div');visual.className='visual';visual.style.width='100%';visual.style.height='100%';visual.style.overflow='hidden';el.appendChild(visual);renderVisual(el,it);for(const pos of ['nw','ne','sw','se']){const handle=document.createElement('span');handle.className='resize-handle '+pos;handle.dataset.resize=pos;el.appendChild(handle)}paper.appendChild(el)}$('emptyNote').classList.toggle('hidden',items.length>0);}
-function updateOne(id){const it=items.find(x=>x.id===id);const el=paper.querySelector('.design-item[data-id="'+id+'"]');if(!it||!el){renderAll();return}applyBox(el,it);renderVisual(el,it);el.classList.toggle('selected',it.id===selectedId)}
-function renderProperties(){const box=$('properties'),it=getSelected();if(!it){box.innerHTML='<div class="empty-properties"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg><br>Nothing selected yet.<br>Tap an item on the page to edit it.</div>';return}
- let html='';
- if(it.type==='text') html+='<label class="field"><span class="field-label">Your text</span><textarea data-prop="text" rows="3">'+escapeHTML(it.text)+'</textarea></label>';
- if(it.type==='counter') html+='<div class="counter-note">This is a variable number. Printing creates one page per value. You can also use {{counter}} inside text, QR-code or barcode content to make it change on every page.</div><div class="inline-fields"><label class="field"><span class="field-label">Start</span><input type="number" step="any" data-prop="start" value="'+Number(it.start)+'"></label><label class="field"><span class="field-label">End</span><input type="number" step="any" data-prop="end" value="'+Number(it.end)+'"></label></div><div class="inline-fields"><label class="field"><span class="field-label">Increment</span><input type="number" step="any" data-prop="increment" value="'+Number(it.increment)+'"></label><label class="field"><span class="field-label">Zero padding <span class="subtle">digits</span></span><input type="number" min="0" max="12" step="1" data-prop="padding" value="'+Number(it.padding||0)+'"></label></div><div class="inline-fields"><label class="field"><span class="field-label">Prefix</span><input type="text" data-prop="prefix" value="'+escapeHTML(it.prefix||'')+'" placeholder="e.g. BOX-"></label><label class="field"><span class="field-label">Suffix</span><input type="text" data-prop="suffix" value="'+escapeHTML(it.suffix||'')+'" placeholder="e.g. -A"></label></div>';
- if(it.type==='shape') html+='<label class="field"><span class="field-label">Shape</span><select data-prop="shapeType">'+[['rectangle','Rectangle'],['rounded','Rounded rectangle'],['circle','Circle'],['triangle','Triangle'],['diamond','Diamond'],['star','Star'],['arrow','Arrow'],['line','Line'],['hexagon','Hexagon'],['cross','Cross'],['octagon','Octagon']].map(([v,l])=>'<option value="'+v+'" '+(it.shapeType===v?'selected':'')+'>'+l+'</option>').join('')+'</select></label><div class="inline-fields"><div class="field"><label class="field-label" for="shapeLineColor">Line colour</label><div class="color-row"><input id="shapeLineColor" type="color" data-prop="color" value="'+escapeHTML(it.color||'#6558d3')+'"></div></div><div class="field"><label class="field-label" for="shapeFillColor">Fill colour</label><div class="color-row"><input id="shapeFillColor" type="color" data-prop="fillColor" value="'+escapeHTML(it.fill&&it.fill!=='transparent'?it.fill:'#ffffff')+'"></div><label class="checkline" style="margin-top:5px"><input type="checkbox" data-prop="transparentFill" '+((!it.fill||it.fill==='transparent')?'checked':'')+'> No fill</label></div></div><label class="field"><span class="field-label">Line thickness</span><input type="number" min="1" max="12" step="1" data-prop="strokeWidth" value="'+Number(it.strokeWidth||3)+'"></label>';
- if(it.type==='symbol') html+='<label class="field"><span class="field-label">Sticker text</span><input type="text" data-prop="label" value="'+escapeHTML(it.label)+'"></label><label class="field"><span class="field-label">Symbol</span><select data-prop="symbol">'+Object.entries(symbols).map(([key,s])=>'<option value="'+key+'" '+(it.symbol===key?'selected':'')+'>'+escapeHTML(s.label)+'</option>').join('')+'</select></label>';
- if(it.type==='qr'||it.type==='barcode') html+='<label class="field"><span class="field-label">'+(it.type==='qr'?'QR content / URL':'Barcode content')+'</span><textarea data-prop="content" rows="3">'+escapeHTML(it.content)+'</textarea></label>';
- if(it.type==='image') html+='<label class="field"><span class="field-label">Image fit</span><select data-prop="fit"><option value="contain" '+(it.fit!=='cover'?'selected':'')+'>Fit inside</option><option value="cover" '+(it.fit==='cover'?'selected':'')+'>Fill frame</option></select></label><button class="action small" id="replaceImage" type="button" style="width:100%;margin-bottom:12px">Replace image</button>';
- if(it.type==='barcode') html+='<label class="checkline" style="margin:0 0 13px"><input type="checkbox" data-prop="showValue" '+(it.showValue?'checked':'')+'> Show numbers below barcode</label>';
- if(it.type==='text'||it.type==='symbol'||it.type==='counter'){
-   html+='<div class="inline-fields"><label class="field"><span class="field-label">Font size <span class="subtle">pt</span></span><input type="number" min="4" max="180" step="1" data-prop="fontSize" value="'+(Number(it.fontSize)||12)+'"></label><label class="field"><span class="field-label">Font family</span><select data-prop="fontFamily"><option value="Arial, sans-serif" '+((it.fontFamily||'Arial, sans-serif')==='Arial, sans-serif'?'selected':'')+'>Arial</option><option value="Verdana, sans-serif" '+(it.fontFamily==='Verdana, sans-serif'?'selected':'')+'>Verdana</option><option value="Georgia, serif" '+(it.fontFamily==='Georgia, serif'?'selected':'')+'>Georgia</option><option value="Courier New" '+(it.fontFamily==="Courier New"?'selected':'')+'>Courier</option><option value="Impact, sans-serif" '+(it.fontFamily==='Impact, sans-serif'?'selected':'')+'>Impact</option></select></label></div>';
-   if(it.type==='text'||it.type==='counter')html+='<div class="field"><span class="field-label">Text alignment</span><div class="orientation" style="width:max-content"><button type="button" data-align="left" class="'+(it.align==='left'?'active':'')+'">Left</button><button type="button" data-align="center" class="'+((it.align||'center')==='center'?'active':'')+'">Center</button><button type="button" data-align="right" class="'+(it.align==='right'?'active':'')+'">Right</button></div></div>';
-   html+='<div class="field"><span class="field-label">Style</span><div class="checks"><label class="checkline"><input type="checkbox" data-prop="bold" '+(it.bold?'checked':'')+'> Bold</label><label class="checkline"><input type="checkbox" data-prop="italic" '+(it.italic?'checked':'')+'> Italic</label></div></div>';
- }
- if(it.type!=='shape')html+='<div class="inline-fields"><label class="field"><span class="field-label">Text / symbol colour</span><div class="color-row"><input type="color" data-prop="color" value="'+escapeHTML(it.color||(it.type==='symbol'?'#d92d20':'#182230'))+'"><span>Choose colour</span></div></label><label class="field"><span class="field-label">Background</span><div class="color-row"><input type="color" data-prop="backgroundColor" value="'+escapeHTML(it.background&&it.background!=='transparent'?it.background:'#ffffff')+'"><span>Fill colour</span></div><label class="checkline" style="margin-top:5px"><input type="checkbox" data-prop="transparentBackground" '+((!it.background||it.background==='transparent')?'checked':'')+'> Transparent</label></div></div>';
- html+='<div class="right-divider"></div><div class="section-title">Position & size <span class="panel-hint">% of page</span></div><div class="inline-fields three"><label class="field"><span class="field-label">Left</span><input type="number" min="0" max="100" step="0.5" data-prop="x" value="'+Number(it.x).toFixed(1)+'"></label><label class="field"><span class="field-label">Top</span><input type="number" min="0" max="100" step="0.5" data-prop="y" value="'+Number(it.y).toFixed(1)+'"></label><label class="field"><span class="field-label">Width</span><input type="number" min="2" max="100" step="0.5" data-prop="w" value="'+Number(it.w).toFixed(1)+'"></label></div><div class="inline-fields"><label class="field"><span class="field-label">Height</span><input type="number" min="2" max="100" step="0.5" data-prop="h" value="'+Number(it.h).toFixed(1)+'"></label><label class="field"><span class="field-label">Layer</span><select data-layer><option value="front">Bring to front</option><option value="back">Send to back</option></select></label></div>';
- html+='<div class="property-actions"><button type="button" class="action" id="duplicateItem">⧉ Duplicate</button><button type="button" class="action" id="deleteItem" style="color:#b42318">⌫ Delete item</button></div>';
- box.innerHTML=html;
-}
-function updateProperties(){renderProperties()}
-function setSelected(id){selectedId=id;paper.querySelectorAll('.design-item').forEach(el=>el.classList.toggle('selected',Number(el.dataset.id)===id));renderProperties()}
-function saveState(){ $('saveState').textContent='Design updated'; }
-function updateProp(prop,value){const it=getSelected();if(!it)return;
- if(prop==='backgroundColor'){it.background=value;const transparency=$('properties').querySelector('[data-prop="transparentBackground"]');if(transparency)transparency.checked=false}
- else if(prop==='transparentBackground'){it.background=value?'transparent':(it.background&&it.background!=='transparent'?it.background:'#ffffff');const bgInput=$('properties').querySelector('[data-prop="backgroundColor"]');if(bgInput)bgInput.value=it.background==='transparent'?'#ffffff':it.background}
- else if(prop==='fillColor'){it.fill=value;const transparency=$('properties').querySelector('[data-prop="transparentFill"]');if(transparency)transparency.checked=false}
- else if(prop==='transparentFill'){it.fill=value?'transparent':(it.fill&&it.fill!=='transparent'?it.fill:'#ffffff');const bgInput=$('properties').querySelector('[data-prop="fillColor"]');if(bgInput)bgInput.value=it.fill==='transparent'?'#ffffff':it.fill}
- else if(['x','y','w','h','fontSize','start','end','increment','padding','strokeWidth'].includes(prop)){let n=Number(value);if(!Number.isFinite(n))return;if(prop==='x'||prop==='y')n=Math.min(100,Math.max(0,n));else if(prop==='w'||prop==='h')n=Math.min(100,Math.max(2,n));else if(prop==='fontSize')n=Math.min(180,Math.max(4,n));else if(prop==='padding')n=Math.min(12,Math.max(0,Math.round(n)));else if(prop==='strokeWidth')n=Math.min(12,Math.max(1,n));it[prop]=n}
- else if(prop==='bold'||prop==='italic'||prop==='showValue')it[prop]=!!value;
- else it[prop]=value;
- updateOne(it.id);if(['x','y','w','h'].includes(prop)){const current=paper.querySelector('.design-item[data-id="'+it.id+'"]');if(current)current.classList.add('selected')}
- if(prop==='symbol'&&!it.label)it.label=symbols[value]?.label||'';
- if(prop==='symbol'||prop==='shapeType'||prop==='transparentFill'||prop==='transparentBackground')renderProperties();saveState();
-}
-$('properties').addEventListener('input',e=>{const prop=e.target.dataset.prop;if(!prop)return;let value=e.target.type==='checkbox'?e.target.checked:e.target.value;updateProp(prop,value)});
-$('properties').addEventListener('change',e=>{const prop=e.target.dataset.prop;if(!prop)return;let value=e.target.type==='checkbox'?e.target.checked:e.target.value;updateProp(prop,value)});
-$('properties').addEventListener('click',e=>{
- const align=e.target.dataset.align;if(align){const it=getSelected();if(it){it.align=align;updateOne(it.id);renderProperties();saveState()}return}
- if(e.target.id==='deleteItem')deleteSelected();if(e.target.id==='duplicateItem')duplicateSelected();if(e.target.id==='replaceImage')$('imageInput').click();
-});
-$('properties').addEventListener('change',e=>{if(e.target.matches('[data-layer]')){const it=getSelected();if(!it)return;items=items.filter(x=>x.id!==it.id);if(e.target.value==='back')items.unshift(it);else items.push(it);renderAll();renderProperties();saveState()}});
-function deleteSelected(){if(!selectedId)return;items=items.filter(it=>it.id!==selectedId);selectedId=null;renderAll();renderProperties();saveState();toast('Item deleted')}
-function duplicateSelected(){const it=getSelected();if(!it)return;const copy={...it,id:nextId++,x:Math.min(92,it.x+3),y:Math.min(92,it.y+3)};items.push(copy);selectedId=copy.id;renderAll();renderProperties();saveState();toast('Item duplicated')}
-document.querySelector('.align-toolbar').addEventListener('click',e=>{const btn=e.target.closest('[data-page-align]');if(!btn)return;const it=getSelected();if(!it){toast('Select an item first');return}const align=btn.dataset.pageAlign;if(align==='left')it.x=0;else if(align==='center')it.x=(100-it.w)/2;else if(align==='right')it.x=100-it.w;else if(align==='top')it.y=0;else if(align==='middle')it.y=(100-it.h)/2;else if(align==='bottom')it.y=100-it.h;updateOne(it.id);renderProperties();saveState();toast('Item aligned to page')});
-$('addText').addEventListener('click',()=>addText());$('addQR').addEventListener('click',()=>addQR());$('addBarcode').addEventListener('click',()=>addBarcode());$('addImage').addEventListener('click',()=>$('imageInput').click());$('addCounter').addEventListener('click',()=>addCounter());
-$('shapeList').addEventListener('click',e=>{const btn=e.target.closest('[data-shape]');if(btn)addShape(btn.dataset.shape)});
-$('quickWarning').addEventListener('click',()=>{addSymbol('warning',36,12);addText('WARNING',18,54);const it=getSelected();if(it&&it.type==='text'){it.fontSize=34;it.color='#d92d20';it.bold=true;it.align='center';updateOne(it.id);renderProperties()}});
-$('quickDontTouch').addEventListener('click',()=>{addSymbol('no-touch',36,12);addText('DO NOT TOUCH',10,56);const it=getSelected();if(it&&it.type==='text'){it.fontSize=28;it.color='#d92d20';it.bold=true;updateOne(it.id);renderProperties()}});
-$('symbolList').innerHTML=Object.entries(symbols).map(([key,info])=>'<button class="symbol-button" draggable="true" data-symbol="'+key+'" type="button"><span class="symbol-mini" data-mini="'+key+'">'+info.svg+'</span><span>'+escapeHTML(info.label.replace(/ · /g,' '))+'</span></button>').join('');$('symbolList').querySelectorAll('[data-mini]').forEach(el=>{el.innerHTML=symbolSVG(el.dataset.mini)});
-$('symbolList').addEventListener('click',e=>{const btn=e.target.closest('[data-symbol]');if(btn&&!draggingPalette){addSymbol(btn.dataset.symbol);}});
-$('symbolList').addEventListener('dragstart',e=>{const btn=e.target.closest('[data-symbol]');if(btn){draggingPalette=true;e.dataTransfer.setData('application/x-easycanvas-symbol',btn.dataset.symbol);e.dataTransfer.effectAllowed='copy'}});
-$('symbolList').addEventListener('dragend',()=>{setTimeout(()=>draggingPalette=false,80)});
-$('imageInput').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)readImageFile(f,27,20);e.target.value=''});
-function readImageFile(file,x,y){if(!file||!file.type.startsWith('image/')){toast('Please choose an image file');return}const reader=new FileReader();reader.onload=()=>{addImageData(reader.result,x,y);toast('Image added — drag it into place')};reader.onerror=()=>toast('Could not read that image');reader.readAsDataURL(file)}
-function coordsFromPoint(clientX,clientY){const r=paper.getBoundingClientRect();return {x:Math.max(0,Math.min(92,((clientX-r.left)/r.width)*100-10)),y:Math.max(0,Math.min(92,((clientY-r.top)/r.height)*100-6))}}
-paper.addEventListener('pointerdown',e=>{const el=e.target.closest('.design-item');if(!el){if(e.target===paper||e.target.closest('.empty-note')){setSelected(null)}return}const id=Number(el.dataset.id);setSelected(id);const it=getSelected();if(!it)return;const handle=e.target.closest('[data-resize]');const r=paper.getBoundingClientRect();drag={id,mode:handle?'resize':'move',handle:handle?.dataset.resize||'',startX:e.clientX,startY:e.clientY,start:{x:it.x,y:it.y,w:it.w,h:it.h},rect:{width:r.width,height:r.height}};e.preventDefault();});
-window.addEventListener('pointermove',e=>{if(!drag)return;const it=items.find(x=>x.id===drag.id);if(!it)return;const dx=(e.clientX-drag.startX)/drag.rect.width*100,dy=(e.clientY-drag.startY)/drag.rect.height*100;if(drag.mode==='move'){it.x=Math.max(0,Math.min(100-it.w,drag.start.x+dx));it.y=Math.max(0,Math.min(100-it.h,drag.start.y+dy))}else{let sx=drag.start.x,sy=drag.start.y,sw=drag.start.w,sh=drag.start.h;let left=sx,top=sy,width=sw,height=sh;if(drag.handle.includes('e'))width=Math.max(2,sw+dx);if(drag.handle.includes('s'))height=Math.max(2,sh+dy);if(drag.handle.includes('w')){width=Math.max(2,sw-dx);left=sx+sw-width}if(drag.handle.includes('n')){height=Math.max(2,sh-dy);top=sy+sh-height}it.x=Math.max(0,Math.min(100-width,left));it.y=Math.max(0,Math.min(100-height,top));it.w=width;it.h=height}updateOne(it.id)});
-window.addEventListener('pointerup',()=>{if(drag){drag=null;renderProperties();saveState()}});
-paper.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy'});
-paper.addEventListener('drop',e=>{e.preventDefault();const p=coordsFromPoint(e.clientX,e.clientY);const key=e.dataTransfer.getData('application/x-easycanvas-symbol');if(key&&symbols[key]){addSymbol(key,p.x,p.y);return}const files=Array.from(e.dataTransfer.files||[]);const image=files.find(f=>f.type.startsWith('image/'));if(image){readImageFile(image,p.x,p.y);return}const html=e.dataTransfer.getData('text/html');if(html){const match=html.match(/<img[^>]+src=["']([^"']+)["']/i);if(match&&match[1].startsWith('data:image/'))addImageData(match[1],p.x,p.y)}});
-let lastPointer={x:25,y:20};window.addEventListener('pointermove',e=>{lastPointer=coordsFromPoint(e.clientX,e.clientY)});
-window.addEventListener('paste',e=>{const active=document.activeElement;if(active&&['INPUT','TEXTAREA','SELECT'].includes(active.tagName))return;const its=e.clipboardData?.items;if(!its)return;for(const i of its){if(i.type&&i.type.startsWith('image/')){const file=i.getAsFile();if(file){e.preventDefault();readImageFile(file,lastPointer.x,lastPointer.y);return}}}});
-window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){if(selectedId){e.preventDefault();deleteSelected()}}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='d'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();duplicateSelected()}});
-$('paperSize').addEventListener('change',e=>{sizeKey=e.target.value;updatePaper()});$('portraitBtn').addEventListener('click',()=>{orientation='portrait';updatePaper()});$('landscapeBtn').addEventListener('click',()=>{orientation='landscape';updatePaper()});
-window.addEventListener('resize',()=>updatePaper());
-function copyCanvases(from,to){const srcCanvases=from.querySelectorAll('canvas'),dstCanvases=to.querySelectorAll('canvas');srcCanvases.forEach((canvas,i)=>{const target=dstCanvases[i];if(!target)return;try{const img=document.createElement('img');img.src=canvas.toDataURL('image/png');img.style.cssText=canvas.style.cssText||'width:100%;height:100%;object-fit:contain';target.replaceWith(img)}catch(err){}})}
-function preparePrintPages(){const host=$('printPages');host.innerHTML='';const counters=items.filter(it=>it.type==='counter');if(!counters.length){document.body.classList.remove('has-print-copies');return true}const sequences=new Map();let pageCount=1;for(const it of counters){const seq=counterSequence(it);if(seq.error){toast(seq.error);return false}sequences.set(it.id,seq.values);pageCount=Math.max(pageCount,seq.values.length)}if(pageCount>500){toast('Counter printing is limited to 500 pages at a time.');return false}const dims=getDimensions(),mainCounter=counters[0],mainValues=sequences.get(mainCounter.id)||[];for(let pageIndex=0;pageIndex<pageCount;pageIndex++){const clone=paper.cloneNode(true);clone.removeAttribute('id');clone.classList.add('print-page');clone.style.width=dims.w+'mm';clone.style.height=dims.h+'mm';clone.style.transform='none';clone.style.position='relative';clone.style.left='0';clone.style.top='0';clone.style.setProperty('break-after','page','important');clone.style.setProperty('page-break-after','always','important');copyCanvases(paper,clone);clone.querySelector('.empty-note')?.remove();clone.querySelectorAll('.design-item').forEach(el=>{el.classList.remove('selected');el.querySelectorAll('.resize-handle').forEach(h=>h.remove());const id=Number(el.dataset.id);const it=items.find(x=>x.id===id);if(!it)return;if(it.type==='counter'){const display=el.querySelector('.item-counter');const vals=sequences.get(id)||[];if(display)display.textContent=pageIndex<vals.length?formatCounter(it,vals[pageIndex]):'';return}const value=pageIndex<mainValues.length?formatCounter(mainCounter,mainValues[pageIndex]):'';const tokenRx=/\{\{counter\}\}|\{counter\}/gi;if(it.type==='text'&&tokenRx.test(String(it.text||''))){const display=el.querySelector('.item-text');if(display)display.textContent=String(it.text||'').replace(tokenRx,value)}if((it.type==='qr'||it.type==='barcode')&&tokenRx.test(String(it.content||''))){const dynamicItem={...it,content:String(it.content||'').replace(tokenRx,value)};renderVisual(el,dynamicItem)}});host.appendChild(clone)}if(host.lastElementChild){host.lastElementChild.style.setProperty('break-after','auto','important');host.lastElementChild.style.setProperty('page-break-after','auto','important')}document.body.classList.add('has-print-copies');return true}
-$('printBtn').addEventListener('click',()=>{updatePaper();if(!preparePrintPages())return;window.print()});window.addEventListener('afterprint',()=>{document.body.classList.remove('has-print-copies');$('printPages').innerHTML=''});
-$('saveBtn').addEventListener('click',()=>{const payload={app:'EasyCanvas',version:2,sizeKey,orientation,items,nextId};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='easycanvas-design.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('Design saved as easycanvas-design.json')});
-$('openBtn').addEventListener('click',()=>$('designInput').click());$('designInput').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const obj=JSON.parse(reader.result);if(obj.app!=='EasyCanvas'||!Array.isArray(obj.items))throw new Error('This is not an EasyCanvas design');items=obj.items;nextId=Math.max(Number(obj.nextId)||1,...items.map(it=>Number(it.id)||0))+1;selectedId=null;sizeKey=SIZES[obj.sizeKey]?obj.sizeKey:'a4';orientation=obj.orientation==='landscape'?'landscape':'portrait';$('paperSize').value=sizeKey;updatePaper();renderAll();renderProperties();saveState();toast('Design opened')}catch(err){toast('Could not open that design file. Choose an EasyCanvas JSON file.')}};reader.readAsText(f);e.target.value=''});
-$('clearPageBtn').addEventListener('click',()=>{if(items.length)$('confirmShade').classList.add('open');else toast('This page is already empty')});
-$('confirmClear').addEventListener('click',()=>{$('confirmShade').classList.remove('open');items=[];selectedId=null;renderAll();renderProperties();saveState()});$('cancelClear').addEventListener('click',()=>$('confirmShade').classList.remove('open'));
-// A subtle convenience: pressing Escape clears selection.
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&selectedId){setSelected(null)}});
-// If the QR/barcode libraries finish loading after the canvas is open, redraw any code items.
-window.addEventListener('easycanvaslibsready',()=>{items.filter(it=>it.type==='qr'||it.type==='barcode').forEach(it=>updateOne(it.id))});
-// Avoid accidental navigation when dragging a file over the app, and update the exact print rule.
-document.addEventListener('dragover',e=>{if(Array.from(e.dataTransfer?.types||[]).includes('Files'))e.preventDefault()});
-updatePaper();renderAll();renderProperties();
-})();
-</script>
+
+  <div id="transactionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <div class="modal-head"><div><span class="section-kicker">Transaction details</span><h2 id="modalTitle">Movement</h2></div><button type="button" class="modal-close" data-close-modal aria-label="Close">×</button></div>
+      <div class="modal-grid"><div><span>Client</span><strong id="modalClient">—</strong></div><div><span>Movement</span><strong id="modalMovement">—</strong></div><div><span>Asset</span><strong id="modalAsset">—</strong></div><div><span>Quantity</span><strong id="modalQuantity">—</strong></div><div><span>Timestamp</span><strong id="modalTimestamp">—</strong></div><div><span>User</span><strong id="modalUser">—</strong></div></div>
+      <div class="modal-comment"><span>Comment</span><p id="modalComment">—</p></div>
+      <div id="modalPhotoWrap" class="modal-photo-wrap hidden"><img id="modalPhoto" alt="Transaction photo"><a id="modalPhotoLink" target="_blank" rel="noopener">Open full size in Drive</a></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="config.js?v=20261014-warehouse-snapshot1"></script>
+  <script src="routine-alert-utils.js?v=20261014-warehouse-snapshot1"></script>
+  <script src="app.js?v=20261014-warehouse-snapshot1"></script>
+  <script>
+    document.getElementById('addIssueBtn')?.addEventListener('click', () => window.addIssueRow());
+  </script>
 </body>
 </html>
