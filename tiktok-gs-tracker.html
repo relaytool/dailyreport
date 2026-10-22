@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>TikTok GS Tracker • Asset Inventory Ledger</title>
+  <link rel="stylesheet" href="transactions.css?v=20261014-normalisations1">
+  <style>
+    :root{--tt-ink:#182230;--tt-muted:#64748b;--tt-line:#e1e7ef;--tt-bg:#f4f7fb;--tt-card:#fff;--tt-purple:#4b35a7;--tt-purple-soft:#f0edff;--tt-green:#16804a;--tt-red:#b42318}
+    *{box-sizing:border-box} body{margin:0;background:var(--tt-bg);color:var(--tt-ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .tt-topbar{background:#fff;border-bottom:1px solid var(--tt-line);padding:20px clamp(14px,3vw,34px);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .tt-eyebrow{color:#64748b;font-size:10px;letter-spacing:.14em;font-weight:850;text-transform:uppercase}.tt-topbar h1{margin:5px 0 4px;font-size:clamp(22px,3vw,30px);letter-spacing:-.035em}.tt-topbar p{margin:0;color:var(--tt-muted);font-size:13px}.tt-actions{display:flex;gap:8px;flex-wrap:wrap}.tt-btn{border:1px solid #d6deea;background:#fff;border-radius:10px;padding:10px 13px;color:#263244;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}.tt-btn.primary{background:var(--tt-purple);border-color:var(--tt-purple);color:#fff}.tt-btn:disabled{opacity:.45;cursor:not-allowed}.tt-btn:hover:not(:disabled){filter:brightness(.97)}
+    .tt-shell{max-width:1480px;margin:0 auto;padding:18px clamp(10px,2.2vw,28px) 34px}.tt-status{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--tt-line);border-radius:13px;padding:12px 15px;margin-bottom:15px;font-size:12px}.tt-status.error{color:var(--tt-red);border-color:#f2b8b5}.tt-status strong{font-weight:800}.tt-main-grid{display:grid;grid-template-columns:minmax(270px,.8fr) minmax(0,1.55fr);gap:16px;align-items:start}.tt-panel{background:var(--tt-card);border:1px solid var(--tt-line);border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.035);min-width:0}.tt-panel-head{padding:17px 17px 13px;border-bottom:1px solid #edf1f5}.tt-panel-head h2{font-size:17px;letter-spacing:-.02em;margin:4px 0 5px}.tt-panel-head p{color:var(--tt-muted);font-size:12px;line-height:1.45;margin:0}.tt-cycle-bar{padding:13px 15px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #edf1f5}.tt-cycle-bar input{min-width:0;flex:1;border:1px solid #d7dee8;border-radius:9px;height:38px;padding:0 9px;font:inherit;color:var(--tt-ink)}.tt-cycle-btn{width:36px;height:36px;border:1px solid #d7dee8;border-radius:9px;background:white;font-size:19px;cursor:pointer}.tt-delivery-list{display:flex;flex-direction:column;gap:8px;padding:12px}.tt-delivery{width:100%;background:white;text-align:left;border:1px solid var(--tt-line);border-radius:12px;padding:12px;cursor:pointer;color:inherit}.tt-delivery:hover{border-color:#c3b9fa}.tt-delivery.selected{background:var(--tt-purple-soft);border-color:#a99bee;box-shadow:0 0 0 2px #e5e0ff}.tt-delivery-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.tt-delivery-name{font-weight:850;font-size:14px}.tt-delivery-time{font-size:11px;color:#667085;white-space:nowrap}.tt-delivery-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:var(--tt-muted);font-size:11px}.tt-count{display:inline-flex;align-items:center;border-radius:999px;background:#f1f5f9;padding:4px 7px;font-size:10px;font-weight:800;white-space:nowrap}
+    .tt-details{padding:17px;display:flex;flex-direction:column;gap:15px}.tt-no-selection{padding:45px 18px;text-align:center;color:var(--tt-muted);line-height:1.6}.tt-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.tt-metric{border:1px solid var(--tt-line);background:#fbfcfe;border-radius:12px;padding:12px;min-width:0}.tt-metric small{display:block;text-transform:uppercase;letter-spacing:.07em;font-size:9px;font-weight:850;color:var(--tt-muted)}.tt-metric strong{display:block;font-size:23px;line-height:1.15;margin-top:6px;font-variant-numeric:tabular-nums}.tt-metric span{color:var(--tt-muted);font-size:10px}.tt-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tt-field{min-width:0;display:flex;flex-direction:column;gap:6px}.tt-field label{font-size:10px;color:#526174;font-weight:850;text-transform:uppercase;letter-spacing:.065em}.tt-field input,.tt-field select,.tt-field textarea{border:1px solid #d7dee8;border-radius:10px;padding:10px 11px;background:#fff;color:var(--tt-ink);font:inherit;font-size:13px;min-width:0;width:100%;outline:none}.tt-field input:focus,.tt-field select:focus,.tt-field textarea:focus{border-color:#a99bee;box-shadow:0 0 0 3px #f0edff}.tt-scan-title{display:flex;align-items:end;justify-content:space-between;gap:10px}.tt-scan-title h3{margin:0;font-size:14px}.tt-scan-title p{margin:4px 0 0;color:var(--tt-muted);font-size:11px}.tt-color-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.tt-color{padding:12px 8px;border:1px solid var(--tt-line);border-radius:12px;background:white;color:var(--tt-ink);font-weight:850;cursor:pointer;text-align:center}.tt-color .tt-swatch{display:block;width:25px;height:25px;border-radius:50%;margin:0 auto 8px;border:1px solid rgba(0,0,0,.1)}.tt-color.yellow .tt-swatch{background:#facc15}.tt-color.purple .tt-swatch{background:#8b5cf6}.tt-color.blue .tt-swatch{background:#3b82f6}.tt-color.active{border-color:#8b7ae5;box-shadow:0 0 0 3px #f0edff;background:#fcfbff}.tt-color strong{font-size:12px;display:block}.tt-color small{display:block;color:var(--tt-muted);font-size:10px;margin-top:4px}.tt-log-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;align-items:end}.tt-log-grid .tt-btn{height:40px;white-space:nowrap}.tt-input-caption{font-size:10px;color:#8993a1;margin-top:-2px}.tt-check{display:flex;align-items:center;gap:9px;font-size:12px;color:#344054;font-weight:650;padding:8px 0}.tt-check input{width:17px;height:17px;accent-color:var(--tt-purple)}.tt-section{border-top:1px solid #edf1f5;padding-top:14px}.tt-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.tt-section-head h3{font-size:13px;margin:0}.tt-totals-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tt-color-total{border:1px solid var(--tt-line);border-radius:11px;padding:10px;min-width:0}.tt-color-total-head{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:850}.tt-color-total-head .tt-swatch{width:10px;height:10px;border-radius:50%;display:inline-block}.tt-color-total p{font-size:11px;color:var(--tt-muted);margin:8px 0 0}.tt-color-total strong{color:var(--tt-ink)}.tt-log-table-wrap{overflow-x:auto;border:1px solid var(--tt-line);border-radius:11px}.tt-log-table{width:100%;border-collapse:collapse;font-size:11px;min-width:500px}.tt-log-table th,.tt-log-table td{padding:10px 11px;border-bottom:1px solid #edf1f5;text-align:left}.tt-log-table th{background:#f8fafc;color:#536174;font-size:9px;text-transform:uppercase;letter-spacing:.06em}.tt-log-table tr:last-child td{border-bottom:0}.tt-log-table .num{text-align:right;font-variant-numeric:tabular-nums}.tt-empty{color:var(--tt-muted);font-size:12px;text-align:center;padding:18px 10px}.tt-message-box{width:100%;min-height:270px;resize:vertical;border:1px solid var(--tt-line);border-radius:12px;padding:14px;background:#fbfcff;color:#1f2937;font:600 13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.tt-message-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tt-photo-row{display:flex;gap:9px;overflow:auto;padding:2px 0 5px}.tt-photo{width:105px;height:92px;object-fit:cover;flex:0 0 auto;background:#f1f5f9;border:1px solid var(--tt-line);border-radius:10px}.tt-hint{color:var(--tt-muted);font-size:11px;line-height:1.5}.tt-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#182230;color:#fff;border-radius:10px;padding:11px 14px;font-size:12px;font-weight:750;z-index:30;max-width:calc(100vw - 24px);box-shadow:0 10px 35px #0002;display:none}.tt-toast.show{display:block}.tt-hidden{display:none!important}
+    @media(max-width:980px){.tt-main-grid{grid-template-columns:1fr}.tt-delivery-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.tt-log-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tt-log-grid .tt-btn{grid-column:1/-1}}
+    @media(max-width:620px){.tt-topbar{align-items:flex-start}.tt-actions{width:100%}.tt-actions .tt-btn{flex:1}.tt-shell{padding:10px}.tt-status{align-items:flex-start;flex-direction:column}.tt-panel-head{padding:14px}.tt-details{padding:13px}.tt-delivery-list{grid-template-columns:1fr}.tt-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tt-metric strong{font-size:21px}.tt-meta-grid{grid-template-columns:1fr 1fr}.tt-totals-grid{grid-template-columns:1fr}.tt-color-total{display:flex;justify-content:space-between;gap:10px;align-items:center}.tt-color-total p{margin:0;text-align:right}.tt-log-grid{grid-template-columns:1fr 1fr}.tt-log-grid .tt-field:first-child{grid-column:1/-1}.tt-log-grid .tt-btn{grid-column:1/-1}.tt-message-box{min-height:290px;font-size:12px}.tt-color{padding:10px 5px}}
+  </style>
+</head>
+<body>
+  <header class="tt-topbar">
+    <div><div class="tt-eyebrow">ASSET INVENTORY LEDGER</div><h1>TikTok GS Tracker</h1><p>Delivery cycles run from 07:00 to 07:00 the following day.</p></div>
+    <div class="tt-actions"><a class="tt-btn" href="transactions.html">← Transactions</a><button id="ttRefresh" class="tt-btn">↻ Refresh</button><button id="ttConnect" class="tt-btn primary">Connect / grant edit access</button></div>
+  </header>
+  <main class="tt-shell">
+    <section id="ttStatus" class="tt-status"><strong id="ttStatusText">Connecting to Google Sheets…</strong><span id="ttDeliveryCount">0 deliveries</span></section>
+    <div class="tt-main-grid">
+      <section class="tt-panel">
+        <div class="tt-panel-head"><div class="tt-eyebrow">DELIVERY LIST</div><h2>TikTok GS deliveries</h2><p>Each distinct transaction timestamp is one delivery. Deliveries are numbered in the order they arrived.</p></div>
+        <div class="tt-cycle-bar"><button id="ttPrevCycle" class="tt-cycle-btn" aria-label="Previous cycle">‹</button><input id="ttCycleDate" type="date" aria-label="Delivery cycle start date"><button id="ttNextCycle" class="tt-cycle-btn" aria-label="Next cycle">›</button></div>
+        <div id="ttCycleLabel" class="tt-hint" style="padding:0 15px 3px"></div>
+        <div id="ttDeliveryList" class="tt-delivery-list"><div class="tt-empty">Connect Google Sheets to load deliveries.</div></div>
+      </section>
+      <section class="tt-panel">
+        <div id="ttNoSelection" class="tt-no-selection">Select a TikTok GS transaction to start logging its boxes.</div>
+        <div id="ttDeliveryDetails" class="tt-details tt-hidden">
+          <div class="tt-panel-head" style="padding:0 0 13px;border-bottom:1px solid #edf1f5"><div class="tt-eyebrow">SELECTED DELIVERY</div><h2 id="ttSelectedTitle">—</h2><p id="ttSelectedSub">—</p></div>
+          <div id="ttPhotoSection" class="tt-section" style="border-top:0;padding-top:0"><div class="tt-section-head"><h3>Transaction photo(s)</h3><span id="ttPhotoStatus" class="tt-hint"></span></div><div id="ttPhotos" class="tt-photo-row"><span class="tt-hint">No photos loaded.</span></div></div>
+          <div class="tt-summary-grid">
+            <div class="tt-metric"><small>Total boxes</small><strong id="ttTotalBoxes">0</strong><span>logged so far</span></div>
+            <div class="tt-metric"><small>Total parcels</small><strong id="ttTotalParcels">0</strong><span>across all colours</span></div>
+            <div class="tt-metric"><small>Colours logged</small><strong id="ttColourCount">0/3</strong><span>yellow · purple · blue</span></div>
+            <div class="tt-metric"><small>Pallets</small><strong id="ttPalletMetric">0</strong><span>delivery total</span></div>
+          </div>
+          <div class="tt-section">
+            <div class="tt-scan-title"><div><h3>Log a box scan</h3><p>Choose a colour, destination, box count and combined parcel count.</p></div></div>
+            <div class="tt-color-grid" style="margin-top:11px">
+              <button class="tt-color yellow active" data-colour="Yellow" type="button"><span class="tt-swatch"></span><strong>Yellow</strong><small id="ttYellowPreview">0 boxes · 0 parcels</small></button>
+              <button class="tt-color purple" data-colour="Purple" type="button"><span class="tt-swatch"></span><strong>Purple</strong><small id="ttPurplePreview">0 boxes · 0 parcels</small></button>
+              <button class="tt-color blue" data-colour="Blue" type="button"><span class="tt-swatch"></span><strong>Blue</strong><small id="ttBluePreview">0 boxes · 0 parcels</small></button>
+            </div>
+            <div class="tt-log-grid" style="margin-top:11px">
+              <div class="tt-field"><label for="ttDestination">Destination (auto)</label><input id="ttDestination" type="text" value="NG15" readonly aria-readonly="true" title="Destination is automatically selected from the box colour."></div>
+              <div class="tt-field"><label for="ttBoxCount">Number of boxes</label><input id="ttBoxCount" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
+              <div class="tt-field"><label for="ttParcelCount">Parcels in these boxes</label><input id="ttParcelCount" type="number" min="0" step="1" value="0" inputmode="numeric"></div>
+              <button id="ttLogBtn" class="tt-btn primary" type="button">＋ Log scan</button>
+            </div>
+            <p class="tt-input-caption" style="margin-top:8px">Enter the combined parcel count for the boxes you are logging in this entry.</p>
+          </div>
+          <div class="tt-section">
+            <div class="tt-section-head"><h3>Delivery details for message</h3><span class="tt-hint">Saved with each scan</span></div>
+            <div class="tt-meta-grid">
+              <div class="tt-field"><label for="ttArea">Delivery area</label><input id="ttArea" type="text" value="Luton" placeholder="e.g. Luton"></div>
+              <div class="tt-field"><label for="ttPallets">Pallets</label><input id="ttPallets" type="number" min="0" step="1" value="0" inputmode="numeric"></div>
+              <div class="tt-field"><label for="ttRobotLocation">Robot processing location</label><select id="ttRobotLocation"><option>UB11</option><option>NG15</option><option>WS2</option></select></div>
+              <div class="tt-field"><label for="ttSenderName">Message sign-off</label><input id="ttSenderName" type="text" value="Deniz" placeholder="Your name"></div>
+            </div>
+            <label class="tt-check"><input id="ttRobotsDone" type="checkbox" checked> All parcels have been processed through the robots.</label>
+            <div class="tt-field"><label for="ttNotes">Notes (optional)</label><input id="ttNotes" type="text" placeholder="Add a short note"></div>
+          </div>
+          <div class="tt-section"><div class="tt-section-head"><h3>Totals by colour</h3><span class="tt-hint">Boxes and combined parcels</span></div><div id="ttColourTotals" class="tt-totals-grid"></div></div>
+          <div class="tt-section"><div class="tt-section-head"><h3>Scans logged</h3><span id="ttLogCount" class="tt-hint">0 entries</span></div><div id="ttLogTable" class="tt-log-table-wrap"><div class="tt-empty">No box scans logged for this delivery yet.</div></div></div>
+          <div class="tt-section"><div class="tt-section-head"><h3>WhatsApp / Slack message</h3><span class="tt-hint">Editable before sharing</span></div><textarea id="ttMessage" class="tt-message-box" spellcheck="false" aria-label="Editable TikTok GS transaction message"></textarea><div class="tt-message-actions"><button id="ttShareBtn" class="tt-btn primary" type="button">📤 Share message + photo</button><button id="ttCopyBtn" class="tt-btn" type="button">📋 Copy message</button><button id="ttResetMsgBtn" class="tt-btn" type="button">↺ Reset message</button></div><p id="ttShareStatus" class="tt-hint" style="margin-top:8px"></p></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id="ttToast" class="tt-toast" role="status" aria-live="polite"></div>
+  <script src="config.js?v=20261014-normalisations1"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+  (() => {
+    'use strict';
+    const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
+    const LOG_SHEET = 'TikTok GS Tracker';
+    const LOG_HEADERS = ['Logged At','Cycle Start','Delivery Key','Delivery Number','Delivery Timestamp','Client','Vehicle / Registration','Delivery Area','Box Colour','Destination','Box Count','Parcel Count','Pallet Count','Robots Processed','Robot Location','Logged By','Photo Links','Notes'];
+    const DESTINATIONS = ['NG15','WS2','UB11'];
+    const COLOURS = ['Yellow','Purple','Blue'];
+    const DESTINATION_BY_COLOUR = Object.freeze({Yellow:'NG15', Blue:'WS2', Purple:'UB11'});
+    const $ = id => document.getElementById(id);
+    const state = { token:null,email:'',transactions:[],deliveries:[],logs:[],selectedId:null,selectedColour:'Yellow',cycleDate:'',followCurrentCycle:true,photos:[],writeAccess:false,sheetReady:false,loading:false,saving:false,originalMessage:'' };
+    const datePartsFmt = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+    const dateLongFmt = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'});
+    const timeFmt = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+    const weekdayFmt = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',weekday:'short'});
+    let toastTimer = null;
+
+    document.addEventListener('DOMContentLoaded', init);
+    function init(){
+      $('ttConnect').addEventListener('click', async()=>{try{await requestWriteAccess();await loadData();}catch(e){setStatus(e.message||'Google sign-in failed.',true);}});
+      $('ttRefresh').addEventListener('click',()=>loadData());
+      $('ttPrevCycle').addEventListener('click',()=>changeCycle(-1));
+      $('ttNextCycle').addEventListener('click',()=>changeCycle(1));
+      $('ttCycleDate').addEventListener('change',()=>{if($('ttCycleDate').value){state.cycleDate=$('ttCycleDate').value;state.followCurrentCycle=state.cycleDate===currentCycleDate();renderDeliveries(true);}});
+      document.querySelectorAll('[data-colour]').forEach(btn=>btn.addEventListener('click',()=>selectColour(btn.dataset.colour)));
+      $('ttLogBtn').addEventListener('click',logScan);
+      ['ttArea','ttPallets','ttRobotLocation','ttRobotsDone','ttSenderName','ttNotes'].forEach(id=>$(id).addEventListener('input',renderMessage));
+      ['ttRobotLocation','ttRobotsDone','ttSenderName','ttNotes'].forEach(id=>$(id).addEventListener('change',renderMessage));
+      $('ttPallets').addEventListener('change',()=>{renderTotals();renderMessage();});
+      $('ttShareBtn').addEventListener('click',shareMessage);
+      $('ttCopyBtn').addEventListener('click',copyMessage);
+      $('ttResetMsgBtn').addEventListener('click',()=>{ $('ttMessage').value=buildMessage();state.originalMessage=$('ttMessage').value; });
+      state.cycleDate=currentCycleDate();state.followCurrentCycle=true;$('ttCycleDate').value=state.cycleDate;updateCycleLabel();
+      setInterval(()=>{if(document.hidden||state.loading||state.saving)return;const current=currentCycleDate();if(state.followCurrentCycle&&current!==state.cycleDate){state.cycleDate=current;$('ttCycleDate').value=current;}loadData();},60000);
+      const cached=window.FM_AUTH_CACHE?.read?.();
+      if(cached?.token){state.token=cached.token;state.email=cached.email||'';loadData();}
+      else{setStatus('Connect Google Sheets to load TikTok GS deliveries.');renderDeliveries(false);}
+    }
+
+    async function requestWriteAccess(){
+      if(!window.google?.accounts?.oauth2?.initTokenClient) throw new Error('Google sign-in is still loading. Please try again.');
+      setStatus('Requesting Google Sheets edit access…');
+      const token = await new Promise((resolve,reject)=>{
+        let settled=false;
+        const done=(fn,v)=>{if(settled)return;settled=true;fn(v);};
+        const timer=setTimeout(()=>done(reject,new Error('Google authorization timed out.')),25000);
+        const client=google.accounts.oauth2.initTokenClient({
+          client_id:CONFIG.GOOGLE_CLIENT_ID,
+          scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+          callback:response=>{clearTimeout(timer);if(response.error){done(reject,new Error(response.error_description||response.error));return;}done(resolve,response);}
+        });
+        try{client.requestAccessToken({prompt:'consent'});}catch(e){clearTimeout(timer);done(reject,e);}
+      });
+      state.token=token.access_token;state.writeAccess=true;
+      window.FM_AUTH_CACHE?.write?.(token.access_token,token.expires_in,state.email);
+      $('ttConnect').textContent='Edit access connected ✓';
+      toast('Google Sheets edit access connected.');
+      return state.token;
+    }
+
+    async function loadData(){
+      if(state.loading)return;
+      if(!state.token){setStatus('Connect Google Sheets to load TikTok GS deliveries.');return;}
+      state.loading=true;setStatus('Loading TikTok GS deliveries and saved scans…');
+      try{
+        const [txRows,logRows]=await Promise.all([getValues(CONFIG.INVENTORY_LEDGER_SHEET_ID,CONFIG.TRANSACTIONS_SHEET_NAME),getOptionalValues(CONFIG.INVENTORY_LEDGER_SHEET_ID,LOG_SHEET)]);
+        state.transactions=parseTransactions(txRows);
+        state.logs=parseLogs(logRows);
+        state.sheetReady=Boolean(logRows.length);
+        renderDeliveries(true);
+        setStatus(`Connected · ${state.deliveries.length} ${state.deliveries.length===1?'delivery':'deliveries'} in this 07:00–07:00 cycle.`);
+      }catch(error){
+        console.error(error);setStatus(error.message||'Could not load data from Google Sheets.',true);
+        if(/401|expired|invalid credentials/i.test(String(error.message))){state.token=null;window.FM_AUTH_CACHE?.clear?.();}
+      }finally{state.loading=false;}
+    }
+    async function getValues(spreadsheetId,sheetName){
+      const range=`'${String(sheetName).replaceAll("'","''")}'!A:R`;
+      const response=await fetch(`${SHEETS_API}/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}`,{headers:{Authorization:`Bearer ${state.token}`},cache:'no-store'});
+      const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data?.error?.message||`Google Sheets request failed (${response.status})`);return data.values||[];
+    }
+    async function getOptionalValues(spreadsheetId,sheetName){try{return await getValues(spreadsheetId,sheetName);}catch(error){if(/unable to parse range|range .* not found|Unable to parse range/i.test(error.message))return [];console.warn('Optional TikTok sheet is not available yet:',error.message);return [];}}
+    function parseTransactions(rows){
+      if(!rows?.length)return [];
+      const headerIndex=rows.findIndex(r=>r.some(v=>normHead(v)==='timestamp'));
+      if(headerIndex<0)throw new Error('Could not find Timestamp in Asset Transactions.');
+      const headers=rows[headerIndex].map(normHead);const find=aliases=>aliases.map(normHead).reduce((got,key)=>got>=0?got:headers.indexOf(key),-1);
+      const ix={timestamp:find(['timestamp','date','datetime']),client:find(['client','client name']),movement:find(['movement','type','direction']),asset:find(['asset','asset name','item']),quantity:find(['quantity','qty']),comment:find(['comment','comments','notes']),image:find(['image','image link','photo','picture','photo link','attachment','drive link'])};
+      if([ix.timestamp,ix.client,ix.movement,ix.asset,ix.quantity].some(i=>i<0))throw new Error('Asset Transactions must contain Timestamp, Client, Movement, Asset and Quantity columns.');
+      return rows.slice(headerIndex+1).map((r,i)=>({rowNumber:headerIndex+i+2,timestamp:String(r[ix.timestamp]??'').trim(),timestampMs:toMs(r[ix.timestamp]),client:String(r[ix.client]??'').trim(),movement:String(r[ix.movement]??'').trim(),asset:String(r[ix.asset]??'').trim(),quantity:num(r[ix.quantity]),comment:ix.comment>=0?String(r[ix.comment]??'').trim():'',image:ix.image>=0?String(r[ix.image]??'').trim():''})).filter(t=>t.timestamp&&Number.isFinite(t.timestampMs)&&t.client&&t.asset&&t.quantity>0&&isTikTokClient(t.client));
+    }
+    function isTikTokClient(client){const compact=String(client||'').toLowerCase().replace(/[^a-z0-9]/g,'');return compact.includes('tiktokgs');}
+    function buildCycleDeliveries(){
+      const nextDate=plusDays(state.cycleDate,1);const buckets=new Map();
+      state.transactions.forEach(tx=>{
+        const parts=londonParts(new Date(tx.timestampMs));const mins=parts.hour*60+parts.minute+parts.second/60;
+        const inCycle=(parts.date===state.cycleDate&&mins>=420)||(parts.date===nextDate&&mins<420);
+        if(!inCycle)return;
+        const key=String(tx.timestampMs);
+        if(!buckets.has(key))buckets.set(key,{id:key,deliveryKey:`${state.cycleDate}|${key}`,timestamp:tx.timestamp,timestampMs:tx.timestampMs,client:tx.client,rows:[],photos:[],vehicleRegs:[]});
+        const group=buckets.get(key);group.rows.push(tx);if(!group.client||group.client.length<tx.client.length)group.client=tx.client;
+        if(tx.image&&!group.photos.includes(tx.image))group.photos.push(tx.image);
+        if(tx.comment&&!group.vehicleRegs.includes(tx.comment))group.vehicleRegs.push(tx.comment);
+      });
+      const deliveries=[...buckets.values()].sort((a,b)=>a.timestampMs-b.timestampMs);
+      deliveries.forEach((d,i)=>{d.number=i+1;d.ordinal=ordinal(i+1);d.assetCount=d.rows.length;d.totalMovement=d.rows.map(r=>r.asset).filter(Boolean).join(', ');d.savedLogs=logsFor(d);});
+      return deliveries;
+    }
+    function parseLogs(rows){
+      if(!rows?.length)return [];
+      const headerIndex=rows.findIndex(r=>r.some(v=>normHead(v)==='delivery key'));
+      if(headerIndex<0)return [];
+      const h=rows[headerIndex].map(normHead);const find=aliases=>aliases.map(normHead).reduce((got,k)=>got>=0?got:h.indexOf(k),-1);
+      const ix={loggedAt:find(['logged at']),cycle:find(['cycle start']),key:find(['delivery key']),number:find(['delivery number']),timestamp:find(['delivery timestamp']),client:find(['client']),vehicle:find(['vehicle / registration','vehicle registration']),area:find(['delivery area']),colour:find(['box colour','box color']),destination:find(['destination']),boxes:find(['box count']),parcels:find(['parcel count']),pallets:find(['pallet count']),robots:find(['robots processed']),robotLocation:find(['robot location']),user:find(['logged by']),photos:find(['photo links']),notes:find(['notes'])};
+      return rows.slice(headerIndex+1).map((r,i)=>({rowNumber:headerIndex+i+2,loggedAt:cell(r,ix.loggedAt),cycleStart:cell(r,ix.cycle),deliveryKey:cell(r,ix.key),deliveryNumber:num(cell(r,ix.number)),timestamp:cell(r,ix.timestamp),client:cell(r,ix.client),vehicle:cell(r,ix.vehicle),area:cell(r,ix.area),colour:titleCase(cell(r,ix.colour)),destination:cell(r,ix.destination).toUpperCase(),boxes:num(cell(r,ix.boxes)),parcels:num(cell(r,ix.parcels)),pallets:num(cell(r,ix.pallets)),robots:String(cell(r,ix.robots)).toLowerCase()==='true',robotLocation:cell(r,ix.robotLocation)||'UB11',user:cell(r,ix.user),photos:cell(r,ix.photos),notes:cell(r,ix.notes)})).filter(l=>l.deliveryKey&&l.colour&&l.colour!=='Meta');
+    }
+    function logsFor(delivery){return state.logs.filter(log=>log.deliveryKey===delivery.deliveryKey).sort((a,b)=>a.rowNumber-b.rowNumber);}
+
+    function renderDeliveries(selectFirst){
+      updateCycleLabel();state.deliveries=buildCycleDeliveries();
+      $('ttDeliveryCount').textContent=`${state.deliveries.length} deliveries`;
+      const list=$('ttDeliveryList');
+      if(!state.deliveries.length){list.innerHTML='<div class="tt-empty">No TikTok GS deliveries found between 07:00 and 07:00 for this cycle.</div>';state.selectedId=null;showNoSelection();return;}
+      if(selectFirst||!state.deliveries.some(d=>d.id===state.selectedId))state.selectedId=state.deliveries[0].id;
+      list.innerHTML=state.deliveries.map(d=>{
+        const scanCount=d.savedLogs.reduce((s,l)=>s+l.boxes,0);const selected=d.id===state.selectedId;
+        return `<button type="button" class="tt-delivery${selected?' selected':''}" data-delivery-id="${escapeAttr(d.id)}"><div class="tt-delivery-top"><span class="tt-delivery-name">${escapeHtml(d.ordinal)} delivery</span><span class="tt-delivery-time">${escapeHtml(formatTime(d.timestampMs))}</span></div><div class="tt-delivery-bottom"><span>${escapeHtml(d.client)}${d.vehicleRegs.length?' · '+escapeHtml(d.vehicleRegs.join(' / ')):''}</span><span class="tt-count">${formatNum(scanCount)} boxes logged</span></div></button>`;
+      }).join('');
+      list.querySelectorAll('[data-delivery-id]').forEach(btn=>btn.addEventListener('click',()=>selectDelivery(btn.dataset.deliveryId)));
+      if(state.selectedId)renderSelected();
+    }
+    function selectDelivery(id){state.selectedId=id;document.querySelectorAll('.tt-delivery').forEach(b=>b.classList.toggle('selected',b.dataset.deliveryId===id));renderSelected();}
+    function showNoSelection(){$('ttNoSelection').classList.remove('tt-hidden');$('ttDeliveryDetails').classList.add('tt-hidden');}
+    function renderSelected(){
+      const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d){showNoSelection();return;}
+      d.savedLogs=logsFor(d);$('ttNoSelection').classList.add('tt-hidden');$('ttDeliveryDetails').classList.remove('tt-hidden');
+      $('ttSelectedTitle').textContent=`${d.ordinal} delivery`;$('ttSelectedSub').textContent=`${d.client} · ${formatDateTime(d.timestampMs)}${d.vehicleRegs.length?' · '+d.vehicleRegs.join(' / '):''}`;
+      const logs=d.savedLogs;
+      $('ttArea').value=logs.find(l=>l.area)?.area||'Luton';$('ttPallets').value=logs.length?logs[logs.length-1].pallets:0;
+      $('ttRobotLocation').value=logs.find(l=>l.robotLocation)?.robotLocation||'UB11';$('ttRobotsDone').checked=logs.length?logs[logs.length-1].robots:true;
+      $('ttNotes').value=logs.find(l=>l.notes)?.notes||'';
+      $('ttPhotos').innerHTML=d.photos.length?d.photos.map((url,i)=>`<img class="tt-photo" data-photo-index="${i}" alt="TikTok GS delivery photo ${i+1}" src="${escapeAttr(url)}" loading="lazy">`).join(''):'<span class="tt-hint">No transaction photo is attached to this delivery.</span>';
+      $('ttPhotoStatus').textContent=d.photos.length?`${d.photos.length} photo${d.photos.length===1?'':'s'}`:'No photo attached';
+      $('ttPhotos').querySelectorAll('img').forEach((img,i)=>{img.addEventListener('error',()=>{if(state.token&&window.FM_MEDIA?.loadDriveImage)window.FM_MEDIA.loadDriveImage(img,d.photos[i],state.token);});if(state.token&&window.FM_MEDIA?.loadDriveImage)window.FM_MEDIA.loadDriveImage(img,d.photos[i],state.token);});
+      renderTotals();renderLogTable();renderMessage();
+    }
+    function selectColour(colour){if(!Object.prototype.hasOwnProperty.call(DESTINATION_BY_COLOUR,colour))return;state.selectedColour=colour;$('ttDestination').value=DESTINATION_BY_COLOUR[colour];document.querySelectorAll('[data-colour]').forEach(btn=>btn.classList.toggle('active',btn.dataset.colour===colour));}
+    function totals(logs){const result={boxes:0,parcels:0,byColour:{},byDestination:{}};COLOURS.forEach(c=>result.byColour[c]={boxes:0,parcels:0});DESTINATIONS.forEach(dest=>result.byDestination[dest]={boxes:0,parcels:0});logs.forEach(l=>{result.boxes+=l.boxes;result.parcels+=l.parcels;if(!result.byColour[l.colour])result.byColour[l.colour]={boxes:0,parcels:0};result.byColour[l.colour].boxes+=l.boxes;result.byColour[l.colour].parcels+=l.parcels;if(!result.byDestination[l.destination])result.byDestination[l.destination]={boxes:0,parcels:0};result.byDestination[l.destination].boxes+=l.boxes;result.byDestination[l.destination].parcels+=l.parcels;});return result;}
+    function renderTotals(){const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d)return;const t=totals(logsFor(d));$('ttTotalBoxes').textContent=formatNum(t.boxes);$('ttTotalParcels').textContent=formatNum(t.parcels);$('ttColourCount').textContent=`${COLOURS.filter(c=>t.byColour[c].boxes>0||t.byColour[c].parcels>0).length}/3`;$('ttPalletMetric').textContent=formatNum(num($('ttPallets').value));COLOURS.forEach(c=>{const prefix='tt'+c+'Preview';$(prefix).textContent=`${formatNum(t.byColour[c].boxes)} boxes · ${formatNum(t.byColour[c].parcels)} parcels`;});$('ttColourTotals').innerHTML=COLOURS.map(c=>`<div class="tt-color-total"><div class="tt-color-total-head"><span class="tt-swatch" style="background:${c==='Yellow'?'#facc15':c==='Purple'?'#8b5cf6':'#3b82f6'}"></span>${c}</div><p><strong>${formatNum(t.byColour[c].boxes)}</strong> boxes · <strong>${formatNum(t.byColour[c].parcels)}</strong> parcels</p></div>`).join('');}
+    function renderLogTable(){const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d)return;const logs=logsFor(d);$('ttLogCount').textContent=`${logs.length} entr${logs.length===1?'y':'ies'}`;if(!logs.length){$('ttLogTable').innerHTML='<div class="tt-empty">No box scans logged for this delivery yet.</div>';return;}$('ttLogTable').innerHTML=`<table class="tt-log-table"><thead><tr><th>Colour</th><th>Destination</th><th class="num">Boxes</th><th class="num">Parcels</th><th>Logged at</th></tr></thead><tbody>${logs.map(l=>`<tr><td>${escapeHtml(l.colour)}</td><td>${escapeHtml(l.destination)}</td><td class="num">${formatNum(l.boxes)}</td><td class="num">${formatNum(l.parcels)}</td><td>${escapeHtml(formatTime(toMs(l.loggedAt)))}</td></tr>`).join('')}</tbody></table>`;}
+
+    async function logScan(){
+      if(state.saving)return;
+      const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d){toast('Select a delivery first.');return;}
+      const boxes=num($('ttBoxCount').value),parcels=num($('ttParcelCount').value),colour=state.selectedColour,destination=DESTINATION_BY_COLOUR[colour];$('ttDestination').value=destination;
+      if(!Number.isInteger(boxes)||boxes<1){toast('Enter a box count of at least 1.');$('ttBoxCount').focus();return;}
+      if(!Number.isInteger(parcels)||parcels<0){toast('Enter a valid combined parcel count.');$('ttParcelCount').focus();return;}
+      const area=$('ttArea').value.trim()||'Luton',pallets=Math.max(0,Math.floor(num($('ttPallets').value))),robots=$('ttRobotsDone').checked,robotLocation=$('ttRobotLocation').value,notes=$('ttNotes').value.trim();
+      state.saving=true;$('ttLogBtn').disabled=true;$('ttLogBtn').textContent='Saving…';
+      try{
+        if(!state.writeAccess)await requestWriteAccess();
+        await ensureLogSheet();
+        const loggedAt=new Date().toISOString();
+        const row=[loggedAt,state.cycleDate,d.deliveryKey,d.number,d.timestamp,d.client,d.vehicleRegs.join(' / '),area,colour,destination,boxes,parcels,pallets,robots?'TRUE':'FALSE',robotLocation,state.email||'Unknown',d.photos.join(' | '),notes];
+        await appendLogRow(row);
+        const newLog={rowNumber:100000+state.logs.length,loggedAt,cycleStart:state.cycleDate,deliveryKey:d.deliveryKey,deliveryNumber:d.number,timestamp:d.timestamp,client:d.client,vehicle:d.vehicleRegs.join(' / '),area,colour,destination,boxes,parcels,pallets,robots,robotLocation,user:state.email||'Unknown',photos:d.photos.join(' | '),notes};
+        state.logs.push(newLog);d.savedLogs=logsFor(d);$('ttBoxCount').value='1';$('ttParcelCount').value='0';renderDeliveryOnly();toast(`${colour} scan saved to ${LOG_SHEET}.`);$('ttShareStatus').textContent='Scan saved to Google Sheets.';
+      }catch(error){console.error(error);setStatus(error.message||'Could not save this scan.',true);if(/403|insufficient|permission|scope/i.test(String(error.message))){state.writeAccess=false;$('ttConnect').textContent='Grant Google Sheets edit access';$('ttShareStatus').textContent='Edit permission was not granted. Click “Connect / grant edit access” and approve spreadsheet access, then try again.';}else{$('ttShareStatus').textContent=error.message||'Unable to save scan.';}toast('Scan not saved. Check the message above.');}
+      finally{state.saving=false;$('ttLogBtn').disabled=false;$('ttLogBtn').textContent='＋ Log scan';}
+    }
+    function renderDeliveryOnly(){const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d)return;const btn=document.querySelector(`.tt-delivery[data-delivery-id="${CSS.escape(d.id)}"]`);if(btn){const boxes=logsFor(d).reduce((s,l)=>s+l.boxes,0);const pill=btn.querySelector('.tt-count');if(pill)pill.textContent=`${formatNum(boxes)} boxes logged`;}renderSelected();}
+    async function ensureLogSheet(){
+      if(state.sheetReady)return;
+      const metaResponse=await fetch(`${SHEETS_API}/${encodeURIComponent(CONFIG.INVENTORY_LEDGER_SHEET_ID)}?fields=sheets.properties(sheetId,title)`,{headers:{Authorization:`Bearer ${state.token}`}});const metadata=await metaResponse.json().catch(()=>({}));if(!metaResponse.ok)throw new Error(metadata?.error?.message||`Could not inspect spreadsheet (${metaResponse.status})`);
+      const existing=(metadata.sheets||[]).find(s=>s.properties?.title===LOG_SHEET);
+      if(!existing){const createResponse=await fetch(`${SHEETS_API}/${encodeURIComponent(CONFIG.INVENTORY_LEDGER_SHEET_ID)}:batchUpdate`,{method:'POST',headers:{Authorization:`Bearer ${state.token}`,'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:LOG_SHEET,gridProperties:{rowCount:2000,columnCount:LOG_HEADERS.length}}}}]})});const created=await createResponse.json().catch(()=>({}));if(!createResponse.ok)throw new Error(created?.error?.message||`Could not create ${LOG_SHEET} (${createResponse.status})`);}
+      const rows=await getValues(CONFIG.INVENTORY_LEDGER_SHEET_ID,LOG_SHEET);
+      if(!rows.length){const result=await putHeaderRow();if(!result)throw new Error(`Could not initialise ${LOG_SHEET}.`);}
+      state.sheetReady=true;
+    }
+    async function putHeaderRow(){const range=encodeURIComponent(`'${LOG_SHEET}'!A1:R1`);const response=await fetch(`${SHEETS_API}/${encodeURIComponent(CONFIG.INVENTORY_LEDGER_SHEET_ID)}/values/${range}?valueInputOption=RAW`,{method:'PUT',headers:{Authorization:`Bearer ${state.token}`,'Content-Type':'application/json'},body:JSON.stringify({values:[LOG_HEADERS]})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data?.error?.message||`Could not write tracker headers (${response.status})`);return true;}
+    async function appendLogRow(row){const range=encodeURIComponent(`'${LOG_SHEET}'!A:R`);const response=await fetch(`${SHEETS_API}/${encodeURIComponent(CONFIG.INVENTORY_LEDGER_SHEET_ID)}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:`Bearer ${state.token}`,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data?.error?.message||`Could not save scan (${response.status})`);return data;}
+
+    function buildMessage(){const d=state.deliveries.find(x=>x.id===state.selectedId);if(!d)return '';const logs=logsFor(d),t=totals(logs),area=$('ttArea').value.trim()||'Luton',pallets=Math.max(0,Math.floor(num($('ttPallets').value))),processed=$('ttRobotsDone').checked,robotLocation=$('ttRobotLocation').value,signoff=$('ttSenderName').value.trim()||'Deniz';const lines=['TikTok GS',`${d.ordinal} delivery (${area})`,'Box scan done ✅','',`${formatNum(pallets)} ${pallets===1?'pallet':'pallets'}`,'',`Total boxes- ${formatNum(t.boxes)} ${t.boxes===1?'box':'boxes'}!`];DESTINATIONS.forEach(dest=>{const item=t.byDestination[dest];if(item.boxes||item.parcels)lines.push(`${dest}- ${formatNum(item.boxes)} boxes- ${formatNum(item.parcels)} parcels`);});lines.push('',processed?`All the parcels have been processed through the robots. ✅ (${robotLocation})`:`Parcels are pending robot processing. ⏳ (${robotLocation})`,'','',signoff);if($('ttNotes').value.trim())lines.splice(lines.length-3,0,`Note: ${$('ttNotes').value.trim()}`);return lines.join('\n');}
+    function renderMessage(){if(!$('ttMessage'))return;const message=buildMessage();$('ttMessage').value=message;state.originalMessage=message;renderTotals();}
+    async function shareMessage(){const text=$('ttMessage').value.trim();if(!text)return;const d=state.deliveries.find(x=>x.id===state.selectedId);$('ttShareBtn').disabled=true;$('ttShareStatus').textContent='Preparing transaction photo…';try{const files=await loadPhotoFiles(d);if(navigator.share){const payload={text};if(files.length){payload.files=files;if(navigator.canShare&&!navigator.canShare({files}))throw new Error('This device cannot share the transaction photo and message together.');}await navigator.share(payload);$('ttShareStatus').textContent=files.length?'Shared message with transaction photo.':'Shared message text; no photo was attached to the transaction.';return;}await copyMessage();$('ttShareStatus').textContent=files.length?'This browser has no share sheet. The message was copied; open the transaction photo to attach it manually.':'This browser has no share sheet. Message copied; no transaction photo was available.';}catch(error){if(error?.name==='AbortError')return;console.error(error);if(/cannot share/i.test(error.message)){$('ttShareStatus').textContent=error.message+' Use Copy message and share the image separately.';}else{$('ttShareStatus').textContent=error.message||'Unable to share message.';}}finally{$('ttShareBtn').disabled=false;}}
+    async function loadPhotoFiles(delivery){const files=[];for(let i=0;i<(delivery?.photos||[]).length&&i<5;i++){const url=delivery.photos[i];try{const id=driveFileId(url);let response;if(id&&state.token)response=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:`Bearer ${state.token}`},cache:'force-cache'});else response=await fetch(url);if(!response.ok)throw new Error('Photo download failed');const blob=await response.blob();const mime=blob.type||'image/jpeg';const ext=mime.includes('png')?'png':mime.includes('webp')?'webp':'jpg';files.push(new File([blob],`tiktok-gs-${i+1}.${ext}`,{type:mime}));}catch(error){console.warn('Could not attach photo',url,error);}}return files;}
+    async function copyMessage(){const text=$('ttMessage').value.trim();if(!text)return;try{await navigator.clipboard.writeText(text);toast('Message copied.');$('ttShareStatus').textContent='Message copied. Use Share message + photo to attach the transaction photo on mobile.';}catch(_){$('ttMessage').focus();$('ttMessage').select();const ok=document.execCommand('copy');$('ttShareStatus').textContent=ok?'Message copied.':'Select the message and copy it manually.';}}
+
+    function changeCycle(offset){state.cycleDate=plusDays(state.cycleDate,offset);state.followCurrentCycle=state.cycleDate===currentCycleDate();$('ttCycleDate').value=state.cycleDate;state.selectedId=null;renderDeliveries(true);}
+    function currentCycleDate(){const p=londonParts(new Date());return p.hour<7?plusDays(p.date,-1):p.date;}
+    function updateCycleLabel(){const end=plusDays(state.cycleDate,1);$('ttCycleLabel').textContent=`${formatLongDate(state.cycleDate)} 07:00 → ${formatLongDate(end)} 07:00 · Europe/London`;}
+    function londonParts(date){const parts=datePartsFmt.formatToParts(date);const get=t=>parts.find(p=>p.type===t)?.value||'00';return {date:`${get('year')}-${get('month')}-${get('day')}`,hour:Number(get('hour')),minute:Number(get('minute')),second:Number(get('second'))};}
+    function plusDays(dateKey,n){const [y,m,d]=dateKey.split('-').map(Number);const date=new Date(Date.UTC(y,m-1,d+n));return `${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,'0')}-${String(date.getUTCDate()).padStart(2,'0')}`;}
+    function ordinal(n){const v=n%100;if(v>=11&&v<=13)return `${n}th`;switch(n%10){case 1:return `${n}st`;case 2:return `${n}nd`;case 3:return `${n}rd`;default:return `${n}th`;}}
+    function toMs(value){if(value instanceof Date)return value.getTime();if(typeof value==='number')return value;const raw=String(value??'').trim();const n=Date.parse(raw);return Number.isFinite(n)?n:NaN;}
+    function num(value){const n=Number(String(value??'').replace(/,/g,'').trim());return Number.isFinite(n)?n:0;}
+    function cell(row,index){return index>=0?String(row[index]??'').trim():'';}
+    function normHead(value){return String(value??'').trim().toLowerCase().replace(/\s+/g,' ');}
+    function titleCase(value){const s=String(value||'').trim().toLowerCase();return s?s[0].toUpperCase()+s.slice(1):'';}
+    function formatNum(n){return Number(n||0).toLocaleString('en-GB');}
+    function formatTime(ms){return Number.isFinite(Number(ms))?timeFmt.format(new Date(Number(ms))):'—';}
+    function formatDateTime(ms){return `${formatLongDate(londonParts(new Date(Number(ms))).date)} ${formatTime(ms)}`;}
+    function formatLongDate(dateKey){const date=new Date(`${dateKey}T12:00:00Z`);return `${weekdayFmt.format(date)}, ${dateLongFmt.format(date)}`;}
+    function driveFileId(url){const s=String(url||'');const match=s.match(/\/d\/([\w-]+)/)||s.match(/[?&]id=([\w-]+)/);return match?match[1]:'';}
+    function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+    function escapeAttr(value){return escapeHtml(value);}
+    function setStatus(message,error=false){$('ttStatusText').textContent=message;$('ttStatus').classList.toggle('error',Boolean(error));}
+    function toast(message){const el=$('ttToast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800);}
+  })();
+  </script>
+</body>
+</html>

@@ -15,6 +15,7 @@
       <p id="shiftSubtitle">Loading current London shift…</p>
     </div>
     <div class="top-actions">
+      <a class="btn secondary" href="tiktok-gs-tracker.html" style="text-decoration:none;display:inline-flex;align-items:center">TikTok GS Tracker</a>
       <button id="refreshBtn" class="btn secondary" type="button">↻ Refresh</button>
       <button id="connectBtn" class="btn primary" type="button">Connect Google Sheets</button>
       <button id="signOutBtn" class="btn ghost hidden" type="button">Sign out</button>
@@ -72,7 +73,7 @@
         </section>
       </div>
 
-      <aside class="composer-panel card">
+      <aside id="composerPanel" class="composer-panel card">
         <div class="composer-head">
           <div>
             <span class="eyebrow">COPY READY</span>
@@ -146,5 +147,75 @@
   <script src="config.js?v=20261014-normalisations1"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="transactions.js?v=20261014-normalisations1"></script>
+
+  <style>
+    /* Mobile-only behaviour requested for the transaction composer. */
+    @media (max-width:760px){
+      .transaction-group > #composerPanel{position:static!important;top:auto!important;margin:10px;padding:12px;box-shadow:none;border-radius:12px}
+      .transaction-group > #composerPanel .message-editor{max-height:52vh;overflow:auto}
+    }
+    .top-actions a.btn{font-family:inherit;font-size:12px}
+  </style>
+  <script>
+    (() => {
+      const composer = document.getElementById('composerPanel');
+      const groups = document.getElementById('transactionGroups');
+      const editor = document.getElementById('messageEditor');
+      if (!composer || !groups || !editor) return;
+      const home = composer.parentNode;
+      const homeNext = composer.nextSibling;
+      const mobile = window.matchMedia('(max-width: 760px)');
+      let moveQueued = false;
+
+      function restoreComposer() {
+        if (composer.parentNode === home) return;
+        home.insertBefore(composer, homeNext && homeNext.parentNode === home ? homeNext : null);
+      }
+      function placeComposer() {
+        moveQueued = false;
+        if (!mobile.matches) { restoreComposer(); removeMobileClientLine(); return; }
+        const selected = groups.querySelector('.transaction-group.selected');
+        if (!selected) { restoreComposer(); return; }
+        const button = selected.querySelector('.group-button');
+        if (button && composer.parentNode !== selected) selected.insertBefore(composer, button.nextSibling);
+        else if (button && composer.previousElementSibling !== button) selected.insertBefore(composer, button.nextSibling);
+        addMobileClientLine();
+      }
+      function queuePlace() {
+        if (moveQueued) return;
+        moveQueued = true;
+        requestAnimationFrame(placeComposer);
+      }
+      function addMobileClientLine() {
+        if (!mobile.matches) return;
+        const selected = groups.querySelector('.transaction-group.selected');
+        const clientNode = selected?.querySelector('.group-client');
+        const client = (clientNode?.textContent || '').trim();
+        const bubble = editor.querySelector('.message-bubble');
+        if (!bubble || !client || /^mixed delivery$/i.test(client)) return;
+        if (bubble.querySelector('[data-mobile-client="true"]')) return;
+        const first = document.createElement('span');
+        first.className = 'line direction';
+        first.dataset.mobileClient = 'true';
+        first.textContent = '🏭 Client: ' + client;
+        bubble.insertBefore(first, bubble.firstChild);
+      }
+      function removeMobileClientLine() {
+        editor.querySelectorAll('[data-mobile-client="true"]').forEach(node => node.remove());
+      }
+      document.addEventListener('click', event => {
+        if (event.target.closest('.group-button')) queuePlace();
+      });
+      new MutationObserver(queuePlace).observe(groups, { childList:true, subtree:true, attributes:true, attributeFilter:['class'] });
+      new MutationObserver(() => {
+        if (mobile.matches) addMobileClientLine();
+        else removeMobileClientLine();
+      }).observe(editor, { childList:true, subtree:true });
+      if (mobile.addEventListener) mobile.addEventListener('change', queuePlace);
+      else if (mobile.addListener) mobile.addListener(queuePlace);
+      queuePlace();
+    })();
+  </script>
+
 </body>
 </html>
